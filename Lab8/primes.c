@@ -13,8 +13,6 @@ int check_prime(int nr)
 }
 
 
-
-
 void * thread_code(void * fd_){
 	int *fd = (int *) fd_;
  	int * primes;

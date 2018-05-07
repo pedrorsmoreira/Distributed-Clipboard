@@ -24,8 +24,7 @@ int clipboard_connect(char * clipboard_dir){
 	server_addr.sun_family = AF_UNIX;
 	strcpy(server_addr.sun_path, SOCK_ADDRESS);
 
-	if(connect(sock_fd, (const struct sockaddr *) &server_addr, 
-		sizeof(server_addr)) < 0)	return -1;
+	if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr)) < 0)	return -1;
 
 	return sock_fd;
 }
@@ -35,7 +34,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 	Smessage data;
 	data.region = region;
 	data.order = COPY;
-	data.message_size = sizeof ((char *) buf);
+	data.message_size = count;
 
 	// check for valid region
 	if ((region >= 0) && (region < REGIONS_NR))	return 0;
@@ -50,11 +49,14 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 		perror("memcpy: ");
 		exit(-1);
 	}
-	free(bytestream);
+	
 	if ( write(clipboard_id, bytestream, DATA_SIZE) < 0){
 		perror("write: ");
 		return 0;
 	}
+
+	free(bytestream);
+
 	int bytes_w = 0;
 	int err_w;
 	while (bytes_w < data.message_size){
@@ -73,6 +75,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	Smessage data;
 	data.region = region;
 	data.order = PASTE;
+
 	// check for valid region
 	if ((region >= 0) && (region < REGIONS_NR))	return 0;
 
@@ -98,6 +101,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		exit(-1);
 	}
 	free(bytestream);
+
 	//if the region is empty
 	if (data.region == -1)	return 0;
 
@@ -111,7 +115,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	int err_read;
 
 	while ( bytes_read < data.message_size){
-	if ( ( err_read = read(clipboard_id, &aux[bytes_read], data.message_size) ) == -1){
+	if ( ( err_read = read(clipboard_id, &aux[bytes_wread], data.message_size) ) == -1){
 		perror("read: ");
 		exit(-1);
 	}

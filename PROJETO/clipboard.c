@@ -72,7 +72,6 @@ int main(){
 
 			if ( (data.region < 0) || (data.region > REGIONS_NR))	exit(-2);
 			if (data.order == COPY){
-				int bytes_read = 0;
 				// if something is already copied in this region, replace it
 				if ( regions[data.region] != NULL) free(regions[data.region]);
 
@@ -84,6 +83,7 @@ int main(){
 				}
 
 				int bytes_read = 0;
+				//isto é necessário? o read e o write tem "Limite"?
 				while ( bytes_read < data.message_size){
 				if ( ( err_read = read(client_fd, regions[data.region][bytes_read], data.message_size) ) == -1){
 					perror("read: ");
@@ -101,7 +101,7 @@ int main(){
 				}
 				data.message_size = sizeof (regions[data.region]);
 				//enviar de volta a estrutura
-				if (memcpy((void *) bytestream,(void *) &data, data_size == NULL){
+				if (memcpy((void *) bytestream,(void *) &data, data_size) == NULL){
 					perror("memcpy: ");
 					exit(-1);
 				}
@@ -124,7 +124,7 @@ int main(){
 			else exit(-2);
 		}
 	}
-//final clean
+	//final clean
 	/*for (int i = 0; i <REGIONS_NR; i++) free(regions[i]);
 	free(bytestream);
 	unlink(file_name_out);

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#define MESSAGE_SIZE 100
 
 int read_region(){
 	int region;

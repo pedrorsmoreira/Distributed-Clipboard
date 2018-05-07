@@ -1,7 +1,6 @@
 #define INBOUND_FIFO "INBOUND_FIFO"
 #define OUTBOUND_FIFO "OUTBOUND_FIFO"
 #define REGIONS_NR 10
-#define MESSAGE_SIZE 100
 #define COPY 0
 #define PASTE 1
 #define DATA_SIZE sizeof(Smessage)
@@ -12,7 +11,6 @@
 typedef struct Smessage{
 	int region;
 	int message_size;
-	//char message[MESSAGE_SIZE];
 	int order;
 }Smessage;
 
