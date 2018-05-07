@@ -42,7 +42,7 @@ int main(){
 	Smessage data;
 	char *regions[REGIONS_NR];
 	for (int i = 0; i <REGIONS_NR; i++) regions[i] = NULL;
-	//bytestream holds the struct info to be sent through the fifo
+	//bytestream holds the struct info to be sent through the socket
 	int data_size = DATA_SIZE;
 	char *bytestream = (char *) malloc(data_size);
 	if ( bytestream == NULL){
@@ -72,7 +72,6 @@ int main(){
 
 			if ( (data.region < 0) || (data.region > REGIONS_NR))	exit(-2);
 			if (data.order == COPY){
-				int bytes_read = 0;
 				// if something is already copied in this region, replace it
 				if ( regions[data.region] != NULL) free(regions[data.region]);
 
@@ -99,9 +98,11 @@ int main(){
 					printf("nothing to paste in region %d \n", data.region);
 					data.region = -1;
 				}
+				else
 				data.message_size = sizeof (regions[data.region]);
+				
 				//enviar de volta a estrutura
-				if (memcpy((void *) bytestream,(void *) &data, data_size == NULL){
+				if (memcpy((void *) bytestream,(void *) &data, data_size) == NULL){
 					perror("memcpy: ");
 					exit(-1);
 				}
@@ -110,6 +111,8 @@ int main(){
 					perror("write: ");
 					exit(-1);
 				}
+
+				if (data.region == -1)	continue;
 
 				int bytes_w = 0;
 				int err_w;
