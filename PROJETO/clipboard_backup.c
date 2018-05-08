@@ -34,6 +34,19 @@ int main(){
 		exit (-1);
 	}
 
+	//declare and initialize variables for the actions cicle
+	Smessage data;
+	char *regions[REGIONS_NR];
+	for (int i = 0; i <REGIONS_NR; i++) regions[i] = NULL;
+	//bytestream holds the struct info to be sent through the socket
+		//nao  interessa
+	int data_size = DATA_SIZE;
+	char *bytestream = (char *) malloc(data_size);
+	if ( bytestream == NULL){
+		printf ("malloc failure\n");
+		exit (-1);
+	}
+
 	while(1){
 		printf(".\n");
 		//stablish connection with client
