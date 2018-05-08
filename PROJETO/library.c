@@ -45,7 +45,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 		exit (-1);
 	}
 
-	if (memcpy((void *) bytestream, (void *) &data, data_size) == NULL){
+	if (memcpy(bytestream, &data, data_size) == NULL){
 		perror("memcpy: ");
 		exit(-1);
 	}
@@ -57,15 +57,12 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 
 	free(bytestream);
 
-	int bytes_w = 0;
 	int err_w;
-	while (bytes_w < data.message_size){
-		if ( ( err_w = write(clipboard_id, &(buf[bytes_w]), data.message_size) ) == -1){
+	
+		if ( ( err_w = write(clipboard_id, buf, data.message_size) ) == -1){
 			perror("write: ");
 			return 0;
 		}
-	bytes_w += err_w;
-	}
 return data.message_size;
 }
 
@@ -84,7 +81,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		printf ("malloc failure\n");
 		exit (-1);
 	}
-	if (memcpy((void *) bytestream, (void *) &data, data_size) == NULL){
+	if (memcpy(bytestream, &data, data_size) == NULL){
 		perror("memcpy: ");
 		exit(-1);
 	}
@@ -96,7 +93,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		perror("read: ");
 		return 0;
 	}
-	if (memcpy((void *) &data, (void *) bytestream, data_size) == NULL){
+	if (memcpy(&data, bytestream, data_size) == NULL){
 		perror("memcpy: ");
 		exit(-1);
 	}
@@ -111,18 +108,16 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		printf ("malloc failure\n");
 		exit (-1);
 	}
-	int bytes_read = 0;
+
 	int err_read;
 
-	while ( bytes_read < data.message_size){
-	if ( ( err_read = read(clipboard_id, &aux[bytes_wread], data.message_size) ) == -1){
+	
+	if ( ( err_read = read(clipboard_id, aux, data.message_size) ) == -1){
 		perror("read: ");
 		exit(-1);
 	}
-	bytes_read += err_read;
-	}
 
-	if (memcpy(buf, (void *) &aux, data_size) == NULL){
+	if (memcpy(buf, aux, data_size) == NULL){
 		perror("memcpy: ");
 		exit(-1);
 	}

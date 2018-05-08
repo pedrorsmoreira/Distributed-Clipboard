@@ -65,7 +65,7 @@ int main(){
 				perror("read: ");
 				exit(-1);
 			}
-			if (memcpy((void *) &data, (void *) bytestream, data_size) == NULL){
+			if (memcpy(&data, bytestream, data_size) == NULL){
 				perror("memcpy: ");
 				exit(-1);
 			}
@@ -82,15 +82,12 @@ int main(){
 					exit (-1);
 				}
 
-				int bytes_read = 0;
-				//isto é necessário? o read e o write tem "Limite"?
-				while ( bytes_read < data.message_size){
-				if ( ( err_read = read(client_fd, regions[data.region][bytes_read], data.message_size) ) == -1){
+			
+				if ( ( err_read = read(client_fd, regions[data.region], data.message_size) ) == -1){
 					perror("read: ");
 					exit(-1);
 				}
-				bytes_read += err_read;
-				}
+				
 				//print
 				printf("copied %s to region %d\n", regions[data.region], data.region);	
 			}else if (data.order == PASTE){
@@ -103,7 +100,7 @@ int main(){
 				data.message_size = sizeof (regions[data.region]);
 				
 				//enviar de volta a estrutura
-				if (memcpy((void *) bytestream,(void *) &data, data_size) == NULL){
+				if (memcpy(bytestream, &data, data_size) == NULL){
 					perror("memcpy: ");
 					exit(-1);
 				}
@@ -115,15 +112,13 @@ int main(){
 
 				if (data.region == -1)	continue;
 
-				int bytes_w = 0;
 				int err_w;
-				while (bytes_w < data.message_size){
-					if ( ( err_w = write(client_fd, regions[data.region][bytes_w], data.message_size) ) == -1){
+				
+					if ( ( err_w = write(client_fd, regions[data.region], data.message_size) ) == -1){
 						perror("write: ");
 						exit(-1);
 					}
-				bytes_w += err_w;
-				}
+		
 			}
 			else exit(-2);
 		}
