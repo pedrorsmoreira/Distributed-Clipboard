@@ -126,7 +126,7 @@ return data.message_size;
 }
 
 int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
-
+return 0;
 }
 
 void clipboard_close(int clipboard_id){
