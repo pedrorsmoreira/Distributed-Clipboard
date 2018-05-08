@@ -42,13 +42,8 @@ int main(){
 	Smessage data;
 	char *regions[REGIONS_NR];
 	for (int i = 0; i <REGIONS_NR; i++) regions[i] = NULL;
-	//bytestream holds the struct info to be sent through the socket
 	int data_size = DATA_SIZE;
-	char *bytestream = (char *) malloc(data_size);
-	if ( bytestream == NULL){
-		printf ("malloc failure\n");
-		exit (-1);
-	}
+	
 //actions cicle
 	while(1){
 		printf(".\n");
@@ -60,16 +55,13 @@ int main(){
 		}
 		//read data
 		int err_read;
-		while ( (err_read = read(client_fd, bytestream, data_size)) > 0){
+
+		while ( (err_read = read(client_fd, &data, data_size)) > 0){
 			if (err_read == -1 ){
 				perror("read: ");
 				exit(-1);
 			}
-			if (memcpy(&data, bytestream, data_size) == NULL){
-				perror("memcpy: ");
-				exit(-1);
-			}
-
+			
 			if ( (data.region < 0) || (data.region > REGIONS_NR))	exit(-2);
 			if (data.order == COPY){
 				// if something is already copied in this region, replace it
@@ -100,12 +92,8 @@ int main(){
 				data.message_size = sizeof (regions[data.region]);
 				
 				//enviar de volta a estrutura
-				if (memcpy(bytestream, &data, data_size) == NULL){
-					perror("memcpy: ");
-					exit(-1);
-				}
-
-				if ( write(client_fd, bytestream, data_size) == -1){
+				
+				if ( write(client_fd, &data, data_size) == -1){
 					perror("write: ");
 					exit(-1);
 				}
@@ -125,7 +113,6 @@ int main(){
 	}
 	//final clean
 	/*for (int i = 0; i <REGIONS_NR; i++) free(regions[i]);
-	free(bytestream);
 	unlink(file_name_out);
 	close(fifo_out);
 	unlink(file_name_in);

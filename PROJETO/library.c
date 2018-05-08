@@ -39,23 +39,11 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 	// check for valid region
 	if ((region < 0) || (region > REGIONS_NR))	return 0;
 	
-	char *bytestream = (char *) malloc(data_size);
-	if ( bytestream == NULL){
-		printf ("malloc failure\n");
-		exit (-1);
-	}
-
-	if (memcpy(bytestream, &data, data_size) == NULL){
-		perror("memcpy: ");
-		exit(-1);
-	}
 	
-	if ( write(clipboard_id, bytestream, DATA_SIZE) < 0){
+	if ( write(clipboard_id, &data, DATA_SIZE) < 0){
 		perror("write: ");
 		return 0;
 	}
-
-	free(bytestream);
 
 	int err_w;
 	
@@ -76,32 +64,17 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	// check for valid region
 	if ((region < 0) || (region > REGIONS_NR))	return 0;
 
-	char *bytestream = (char *) malloc(data_size);
-	if ( bytestream == NULL){
-		printf ("malloc failure\n");
-		exit (-1);
-	}
-	if (memcpy(bytestream, &data, data_size) == NULL){
-		perror("memcpy: ");
-		exit(-1);
-	}
-	if (write(clipboard_id, bytestream, data_size) < 0){
+	if (write(clipboard_id, &data, data_size) < 0){
 		perror("write: ");
 		return 0;
 	}
-	if (read(clipboard_id, bytestream, data_size) < 0){
+	if (read(clipboard_id, &data, data_size) < 0){
 		perror("read: ");
 		return 0;
 	}
-	if (memcpy(&data, bytestream, data_size) == NULL){
-		perror("memcpy: ");
-		exit(-1);
-	}
-	free(bytestream);
 
 	//if the region is empty
 	if (data.region == -1)	return 0;
-
 
 	char *aux = (char *) malloc (data.message_size);
 	if (aux == NULL){
@@ -110,7 +83,6 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	}
 
 	int err_read;
-
 	
 	if ( ( err_read = read(clipboard_id, aux, data.message_size) ) == -1){
 		perror("read: ");
