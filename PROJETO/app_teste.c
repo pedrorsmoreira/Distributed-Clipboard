@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #define MESSAGE_SIZE 100
 
 int read_region(){
@@ -57,7 +58,7 @@ int main(){
 						perror("fgets: ");
 						exit(-1);
 					}
-					nbytes = clipboard_copy(fd, region, message, MESSAGE_SIZE);
+					nbytes = clipboard_copy(fd, region, message, strlen(message)+1);
 					if (nbytes == 0)	printf("copy failed\n---\n");
 					else	printf("%d bytes copied\n---\n", nbytes);
 					break;
@@ -66,7 +67,7 @@ int main(){
 					//read the region of the action from stdin
 					region = read_region();
 					
-					nbytes = clipboard_paste(fd, region, message, MESSAGE_SIZE);
+					nbytes = clipboard_paste(fd, region, message, strlen(message)+1);
 					if (nbytes == 0)	printf("paste failed\n---\n");
 					else	printf("Received %s\n (%d bytes pasted)\n---\n", message, nbytes);
 					

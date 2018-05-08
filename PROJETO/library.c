@@ -37,7 +37,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 	data.message_size = count;
 
 	// check for valid region
-	if ((region >= 0) && (region < REGIONS_NR))	return 0;
+	if ((region < 0) || (region > REGIONS_NR))	return 0;
 	
 	char *bytestream = (char *) malloc(data_size);
 	if ( bytestream == NULL){
@@ -74,7 +74,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	data.order = PASTE;
 
 	// check for valid region
-	if ((region >= 0) && (region < REGIONS_NR))	return 0;
+	if ((region < 0) || (region > REGIONS_NR))	return 0;
 
 	char *bytestream = (char *) malloc(data_size);
 	if ( bytestream == NULL){
