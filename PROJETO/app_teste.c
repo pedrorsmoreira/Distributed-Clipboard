@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #define MESSAGE_SIZE 100
 
 int read_region(){
@@ -10,7 +11,7 @@ int read_region(){
 	char aux[50];
 
 	while(1){
-		printf("Introduce the region where to act(from 0 to %d):\n", REGIONS_NR -1);
+		printf("Introduce the region where to act(from 0 to %d): ", REGIONS_NR -1);
 		if (fgets(aux, 50, stdin) == NULL){
 			perror("fgets: ");
 			exit(-1);
@@ -57,7 +58,7 @@ int main(){
 						perror("fgets: ");
 						exit(-1);
 					}
-					nbytes = clipboard_copy(fd, region, message, MESSAGE_SIZE);
+					nbytes = clipboard_copy(fd, region, message, strlen(message)+1);
 					if (nbytes == 0)	printf("copy failed\n---\n");
 					else	printf("%d bytes copied\n---\n", nbytes);
 					break;
