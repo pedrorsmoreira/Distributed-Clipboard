@@ -10,6 +10,8 @@
 #include <sys/socket.h>
 #include <sys/types.h> 
 #include "clipboard.h"
+
+REG regions[REGIONS_NR];
  
 int main(){
 	struct sockaddr_un local_addr;
@@ -40,8 +42,7 @@ int main(){
 
 //declare and initialize variables for the actions cicle
 	Smessage data;
-	char *regions[REGIONS_NR];
-	for (int i = 0; i <REGIONS_NR; i++) regions[i] = NULL;
+	for (int i = 0; i <REGIONS_NR; i++) regions[i].message = NULL;
 	int data_size = DATA_SIZE;
 	
 //actions cicle
@@ -65,31 +66,32 @@ int main(){
 			if ( (data.region < 0) || (data.region > REGIONS_NR))	exit(-2);
 			if (data.order == COPY){
 				// if something is already copied in this region, replace it
-				if ( regions[data.region] != NULL) free(regions[data.region]);
+				if ( regions[data.region].message != NULL) free(regions[data.region].message);
 
 				// copy the message
-				regions[data.region] = (char *) malloc (data.message_size);
-				if ( regions[data.region] == NULL){
+				regions[data.region].size = data.message_size;
+				regions[data.region].message = (char *) malloc (data.message_size);
+				if ( regions[data.region].message == NULL){
 					printf ("malloc failure\n");
 					exit (-1);
 				}
 
 			
-				if ( ( err_read = read(client_fd, regions[data.region], data.message_size) ) == -1){
+				if ( ( err_read = read(client_fd, regions[data.region].message, data.message_size) ) == -1){
 					perror("read: ");
 					exit(-1);
 				}
 				
 				//print
-				printf("copied %s to region %d\n", regions[data.region], data.region);	
+				printf("copied %s to region %d\n", regions[data.region].message, data.region);	
 			}else if (data.order == PASTE){
 				//check if there anything to paste
-				if (regions[data.region] == NULL){
+				if (regions[data.region].message == NULL){
 					printf("nothing to paste in region %d \n", data.region);
 					data.region = -1;
 				}
 				else
-				data.message_size = sizeof (regions[data.region]);
+				data.message_size = regions[data.region].size;
 				
 				//enviar de volta a estrutura
 				
@@ -102,7 +104,7 @@ int main(){
 
 				int err_w;
 				
-					if ( ( err_w = write(client_fd, regions[data.region], data.message_size) ) == -1){
+					if ( ( err_w = write(client_fd, regions[data.region].message, data.message_size) ) == -1){
 						perror("write: ");
 						exit(-1);
 					}
