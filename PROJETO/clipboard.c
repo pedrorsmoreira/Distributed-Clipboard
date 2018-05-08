@@ -53,6 +53,9 @@ int main(){
 		perror("accept: ");
 		exit (-1);
 		}
+		
+		//chamar a thread accept aquiiiii 
+		thread_accept(sock_fd, client_addr, size_addr);
 		//read data
 		int err_read;
 
