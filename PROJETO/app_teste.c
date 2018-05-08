@@ -11,7 +11,7 @@ int read_region(){
 	char aux[50];
 
 	while(1){
-		printf("Introduce the region where to act(from 0 to %d):\n", REGIONS_NR -1);
+		printf("Introduce the region where to act(from 0 to %d): ", REGIONS_NR -1);
 		if (fgets(aux, 50, stdin) == NULL){
 			perror("fgets: ");
 			exit(-1);
