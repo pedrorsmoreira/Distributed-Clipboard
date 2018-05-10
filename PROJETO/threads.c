@@ -10,26 +10,86 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-void * thread_code(void * fd_){
+REG regions[REGIONS_NR];
 
+void regions_init(){
+	// if (working alone)
+		for (int i = 0; i <REGIONS_NR; i++)
+			regions[i].message = NULL;
+	// else .....
+}
 
-
+void * app_thread(void * CS){
+	client_socket *CS_ = (client_socket *) CS;
+	
+	//stablish connection with the app
+	int client_fd = accept( CS_->socket_fd, (struct sockaddr *) &(CS_->addr), &(CS_->size);
+	if (client_fd == -1){
+		perror("accept: ");
+		exit (-1);
+	}
+	
+	//create new thread for next app connection
+	pthread_t thread_id;
+	pthread_create = (&thread_id, NULL, app_thread, CS);
+	
+	//answer current app requests
+	app_handle(client_fd);
 }
 
 
+void app_handle(int client_fd){
+	Smessage data;
+	int data_size = sizeof(Smessage);
 
+	while ( read(client_fd, &data, data_size) > 0){
+			if ( (data.region < 0) || (data.region > REGIONS_NR))	
+				exit(-2);
+			
+			if (data.order == COPY){	
+				// if something is already copied in this region, replace it
+				if ( regions[data.region].message != NULL)
+					free(regions[data.region].message);
 
-void thread_accept(int sock_fd, struct sockaddr_un client_addr, socklen_t size_addr){
+				regions[data.region].size = data.message_size;
+				regions[data.region].message = (void *) malloc (data.message_size);
+				if ( regions[data.region].message == NULL){
+					printf ("malloc failure\n");
+					exit (-1);
+				}
+				//read the message and copy it
+				if ( read(client_fd, regions[data.region].message, data.message_size) < 0){
+					perror("read: ");
+					exit(-1);
+				}
+				
+				//temporary print for testing
+				printf("copied %s to region %d\n", regions[data.region].message, data.region);	
+			}else if (data.order == PASTE){
+				//check if there's anything to paste
+				if (regions[data.region].message == NULL){
+					printf("nothing to paste in region %d \n", data.region);
+					data.region = -1;
+				}
+				else
+					data.message_size = regions[data.region].size;
+				
+				//enviar de volta a estrutura
+				if ( write(client_fd, &data, data_size) < 0){
+					perror("write: ");
+					exit(-1);
+				}
 
-int client_fd = accept(sock_fd, (struct sockaddr *) &client_addr, &size_addr);
-		if (client_fd == -1){
-		perror("accept: ");
-		exit (-1);
+				if (data.region == -1)	
+					continue;
+				
+				//send the message requested
+				if ( write(client_fd, regions[data.region].message, data.message_size) < 0){
+					perror("write: ");
+					exit(-1);
+				}
+		
+			}
+			else exit(-2);
 		}
-
-pthread_t * thread_id;
-thread_id=(pthread_t*)malloc(sizeof(pthread_t));
-pthread_create(thread_id, NULL, thread_code,(void* client_fd));
-
-thread_accept(sock_fd, client_addr, size_addr);
 }

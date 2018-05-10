@@ -11,111 +11,52 @@
 #include <sys/types.h> 
 #include "clipboard.h"
 
-REG regions[REGIONS_NR];
  
 int main(){
-	struct sockaddr_un local_addr;
-	struct sockaddr_un client_addr;
-	socklen_t size_addr = sizeof(struct sockaddr);
-
+	struct sockaddr_un app_addr;
+	
+	//assure there was no previous socket with the same name
 	unlink(SOCK_ADDRESS);
 
-	//create a socket stream for local comunitacion
-	int sock_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
+	//create a socket stream for app_server_addr comunitacion
+	int sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sock_fd == -1){
 		perror("socket: ");
 		exit (-1);
 	}
-	local_addr.sun_family = AF_UNIX;
-	strcpy(local_addr.sun_path, SOCK_ADDRESS);
 
-	if (bind(sock_fd, (struct sockaddr *) &local_addr, sizeof(local_addr)) ){
+	app_addr.sun_family = AF_UNIX;
+	strcpy(app_addr.sun_path, SOCK_ADDRESS);
+
+	//adress the socket (own it)
+	if ( bind(sock_fd, (struct sockaddr *) &app_addr, sizeof(app_addr)) < 0){
 		perror("bind: ");
 		exit (-1);
 	}
 
-	//EU SOU SERVIDOR
+	//get ready to act as a server
 	if (listen (sock_fd, 2) == -1){
 		perror("listen: ");
 		exit (-1);
 	}
-
-//declare and initialize variables for the actions cicle
-	Smessage data;
-	for (int i = 0; i <REGIONS_NR; i++) regions[i].message = NULL;
-	int data_size = DATA_SIZE;
 	
-//actions cicle
-	while(1){
-		printf(".\n");
-		//stablish connection with client
-		int client_fd = accept(sock_fd, (struct sockaddr *) &client_addr, &size_addr);
-		if (client_fd == -1){
-		perror("accept: ");
-		exit (-1);
-		}
-		
-		//chamar a thread accept aquiiiii 
-		thread_accept(sock_fd, client_addr, size_addr);
-		//read data
-		int err_read;
+	//initialize the regions
+	regions_init();
 
-		while ( (err_read = read(client_fd, &data, data_size)) > 0){
-			if (err_read == -1 ){
-				perror("read: ");
-				exit(-1);
-			}
-			
-			if ( (data.region < 0) || (data.region > REGIONS_NR))	exit(-2);
-			if (data.order == COPY){
-				// if something is already copied in this region, replace it
-				if ( regions[data.region].message != NULL) free(regions[data.region].message);
+	//struct with the client adress info to send to the thread
+	client_socket CS;
+	CS.sock_fd = sock_fd;
+	CS.size = sizeof(sockaddr);
 
-				// copy the message
-				regions[data.region].size = data.message_size;
-				regions[data.region].message = (char *) malloc (data.message_size);
-				if ( regions[data.region].message == NULL){
-					printf ("malloc failure\n");
-					exit (-1);
-				}
+	//handle apps
+	pthread_t thread_id;
+	pthread_create = (&thread_id, NULL, app_thread, (void *) &CS);
 
-			
-				if ( ( err_read = read(client_fd, regions[data.region].message, data.message_size) ) == -1){
-					perror("read: ");
-					exit(-1);
-				}
-				
-				//print
-				printf("copied %s to region %d\n", regions[data.region].message, data.region);	
-			}else if (data.order == PASTE){
-				//check if there anything to paste
-				if (regions[data.region].message == NULL){
-					printf("nothing to paste in region %d \n", data.region);
-					data.region = -1;
-				}
-				else
-				data.message_size = regions[data.region].size;
-				
-				//enviar de volta a estrutura
-				
-				if ( write(client_fd, &data, data_size) == -1){
-					perror("write: ");
-					exit(-1);
-				}
+	//temporary, just to keep main alive
+	//think about it do it nice
+	while(1);
 
-				if (data.region == -1)	continue;
 
-				int err_w;
-				
-					if ( ( err_w = write(client_fd, regions[data.region].message, data.message_size) ) == -1){
-						perror("write: ");
-						exit(-1);
-					}
-		
-			}
-			else exit(-2);
-		}
-	}
 	//final clean
 	/*for (int i = 0; i <REGIONS_NR; i++) free(regions[i]);
 	unlink(file_name_out);

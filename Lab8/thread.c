@@ -19,12 +19,13 @@ void * thread_code(void * fd_){
  	primes = (int*)malloc(sizeof(int));
   	while(1)	{	
    	int aux;	
-	
+		a++;
+		printf("thread a=%d\n",a);
 		if ( read(fd[0], &aux, sizeof(int)) == 0) break;
 		
 		if ( check_prime(aux) ) primes ++;
   	}
-return (void *)primes; 
+//return (void *)primes; 
 }
 
 
@@ -34,7 +35,7 @@ int main(int argc, char **argv){
 
 if  (argc != 3) exit(1);
 
-
+int a=5;
 int slaves_nr = atoi(argv[1]), numbers_nr = atoi(argv[2]);
 int fd[2];
 int i=0;
@@ -49,6 +50,7 @@ thread_ids= (pthread_t*)malloc(slaves_nr *sizeof(pthread_t));
 while(i < slaves_nr) {	
 	pthread_create(&(thread_ids[i]), NULL, thread_code, (void*) fd);
 	i++;
+	printf("main a=%d\n", a);
 }
 
 for (i = 0; i < numbers_nr; i ++){

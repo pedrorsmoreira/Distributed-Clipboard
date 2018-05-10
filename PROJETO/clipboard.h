@@ -3,7 +3,6 @@
 #define REGIONS_NR 10
 #define COPY 0
 #define PASTE 1
-#define DATA_SIZE sizeof(Smessage)
 #define SOCK_ADDRESS "./CLIPBOARD_SOCKET"
 
 #include <sys/types.h>
@@ -18,6 +17,12 @@ typedef struct REG{
 	size_t size;
 	void *message;
 }REG;
+
+typedef struct client_socket{
+	int sock_fd;
+	struct sockaddr_un addr;
+	socklen_t size;
+}sock_client;
 
 int clipboard_connect(char * clipboard_dir);
 int clipboard_copy(int clipboard_id, int region, void *buf, size_t count);
