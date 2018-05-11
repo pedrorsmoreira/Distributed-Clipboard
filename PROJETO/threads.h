@@ -11,6 +11,8 @@ typedef struct client_socket{
 	int sock_fd;
 	struct sockaddr_un addr;
 	socklen_t size;
+	int port; 
+	char IP[20]; 
 }client_socket;
 
 void regions_init();

@@ -24,20 +24,42 @@ int main(int argc, char **argv){
 		perror("pthread_create: ");
 		exit(-1);
 	}
-	int *sock_fd;
-	pthread_join(thread_id, (void*)sock_fd);
+	int *sock_fd_l;
+	pthread_join(thread_id, (void*)sock_fd_l);
 
 	//struct with the client adress info to send to the thread
 	client_socket CS;
-	CS.sock_fd = *sock_fd;
+	CS.sock_fd = *sock_fd_l;
 	CS.size = sizeof(struct sockaddr);
-	free(sock_fd);
+	free(sock_fd_l);
 
 	//handle apps
-	if (pthread_create(&thread_id, NULL, app_thread, &CS) != 0){
+	if (pthread_create(&thread_id, NULL, thread_accept, &CS) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
+
+	if (pthread_create(&thread_id, NULL, distributed_clipboard_init, NULL) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}
+	int *sock_fd_i;
+	pthread_join(thread_id, (void*)sock_fd_i);
+
+	//struct with the client adress info to send to the thread
+	client_socket CS_i;
+	CS_i.sock_fd = *sock_fd_i;
+	CS_i.size = sizeof(struct sockaddr);
+	CS_i.port=argv[3];
+	strcpy(CS_i.IP, argv[2]);
+	free(sock_fd_i);
+
+	//handle clipboards
+	if (pthread_create(&thread_id, NULL, thread_accept, &CS_i) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}
+
 
 	//temporary, just to keep main alive
 	//think about it do it nice

@@ -55,7 +55,7 @@ void *app_init(){
  return (void *) sock_fd;
 }
 
-void *app_accept(void * CS){
+void *thread_accept(void * CS){
 	client_socket *CS_ = (client_socket *) CS;
 	
 	//stablish connection with the app
@@ -134,4 +134,58 @@ void app_handle(int client_fd){
 			}
 			else exit(-2);
 		}
+}
+
+
+void *distributed_clipboard_init(){
+
+	struct sockaddr_un local_addr;
+
+	int *sock_fd = (int *) malloc(sizeof(int));
+
+	//create a socket stream for internet comunication
+	*sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (*sock_fd == -1){
+		perror("socket: ");
+		exit (-1);
+	}
+	local_addr.sin_family = AF_INET;
+	local_addr.sin_port=htons(3010);
+	local_addr.sin_addr.s_addr=INADDR_ANY;
+
+	if (bind(sock_fd, (struct sockaddr *) &local_addr, sizeof(local_addr)) ){
+		perror("bind: ");
+		exit (-1);
+	}
+
+	//EU SOU SERVIDOR
+	if (listen (sock_fd, 2) == -1){
+		perror("listen: ");
+		exit (-1);
+	}
+
+	 return (void *) sock_fd;
+}
+
+void *distributed_clipboard_client(){
+	
+	struct sockaddr_in server_addr;
+	int sock_fd= socket(AF_INET, SOCK_STREAM, 0);
+	if (sock_fd == -1){
+		perror("socket: ");
+		exit(-1);
+	}
+
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port= htons(3000);
+	inet_aton("193.136.128.104", &server_addr.sin_addr);
+	 
+	
+	if( -1 == connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))){
+		printf("Error connecting\n");
+		exit(-1);
+	}
+
+
+
 }
