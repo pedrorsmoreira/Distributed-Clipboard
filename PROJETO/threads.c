@@ -10,8 +10,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "clipboard.h"
+#include "threads.h"
+
 REG regions[REGIONS_NR];
 
+//COMMENT THIS CODE WHEN BOTH CASES ARE WRITTEN
 void regions_init(){
 	// if (working alone)
 		for (int i = 0; i <REGIONS_NR; i++)
@@ -19,11 +23,12 @@ void regions_init(){
 	// else .....
 }
 
+
 void * app_thread(void * CS){
 	client_socket *CS_ = (client_socket *) CS;
 	
 	//stablish connection with the app
-	int client_fd = accept( CS_->socket_fd, (struct sockaddr *) &(CS_->addr), &(CS_->size);
+	int client_fd = accept( CS_->sock_fd, (struct sockaddr *) &(CS_->addr), &(CS_->size));
 	if (client_fd == -1){
 		perror("accept: ");
 		exit (-1);
@@ -31,10 +36,15 @@ void * app_thread(void * CS){
 	
 	//create new thread for next app connection
 	pthread_t thread_id;
-	pthread_create = (&thread_id, NULL, app_thread, CS);
+	if (pthread_create(&thread_id, NULL, app_thread, CS) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}
 	
 	//answer current app requests
 	app_handle(client_fd);
+	//HAD TO PUT SOMETHING ON RETURN - MEANINGLESS - CHANGE IT AFTERWARDS
+	return CS;
 }
 
 
@@ -57,14 +67,15 @@ void app_handle(int client_fd){
 					printf ("malloc failure\n");
 					exit (-1);
 				}
+
 				//read the message and copy it
 				if ( read(client_fd, regions[data.region].message, data.message_size) < 0){
 					perror("read: ");
 					exit(-1);
 				}
 				
-				//temporary print for testing
-				printf("copied %s to region %d\n", regions[data.region].message, data.region);	
+				//TEMPORARY PRINT FOR TESTING - TO BE DELETED
+				printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);	
 			}else if (data.order == PASTE){
 				//check if there's anything to paste
 				if (regions[data.region].message == NULL){

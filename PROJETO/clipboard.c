@@ -8,12 +8,15 @@
 #include <unistd.h>
 #include <sys/un.h>
 #include <sys/socket.h>
-#include <sys/types.h> 
+#include <sys/types.h>
+#include <pthread.h>
+
 #include "clipboard.h"
+#include "threads.h"
 
  
 int main(){
-	struct sockaddr_un app_addr;
+	struct sockaddr_un local_addr;
 	
 	//assure there was no previous socket with the same name
 	unlink(SOCK_ADDRESS);
@@ -25,11 +28,12 @@ int main(){
 		exit (-1);
 	}
 
-	app_addr.sun_family = AF_UNIX;
-	strcpy(app_addr.sun_path, SOCK_ADDRESS);
+	//set the local communication parameters
+	local_addr.sun_family = AF_UNIX;
+	strcpy(local_addr.sun_path, SOCK_ADDRESS);
 
 	//adress the socket (own it)
-	if ( bind(sock_fd, (struct sockaddr *) &app_addr, sizeof(app_addr)) < 0){
+	if ( bind(sock_fd, (struct sockaddr *) &local_addr, sizeof(local_addr)) < 0){
 		perror("bind: ");
 		exit (-1);
 	}
@@ -46,11 +50,14 @@ int main(){
 	//struct with the client adress info to send to the thread
 	client_socket CS;
 	CS.sock_fd = sock_fd;
-	CS.size = sizeof(sockaddr);
+	CS.size = sizeof(struct sockaddr);
 
 	//handle apps
 	pthread_t thread_id;
-	pthread_create = (&thread_id, NULL, app_thread, (void *) &CS);
+	if (pthread_create(&thread_id, NULL, app_thread, &CS) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}
 
 	//temporary, just to keep main alive
 	//think about it do it nice

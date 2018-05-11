@@ -67,7 +67,7 @@ int main(){
 					//read the region of the action from stdin
 					region = read_region();
 					
-					nbytes = clipboard_paste(fd, region, message, strlen(message)+1);
+					nbytes = clipboard_paste(fd, region, message, MESSAGE_SIZE);
 					if (nbytes == 0)	printf("paste failed\n---\n");
 					else	printf("Received %s\n (%d bytes pasted)\n---\n", message, nbytes);
 					
