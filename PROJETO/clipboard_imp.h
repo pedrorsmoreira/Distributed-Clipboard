@@ -1,5 +1,3 @@
-#define INBOUND_FIFO "INBOUND_FIFO"
-#define OUTBOUND_FIFO "OUTBOUND_FIFO"
 #define REGIONS_NR 10
 #define COPY 0
 #define PASTE 1

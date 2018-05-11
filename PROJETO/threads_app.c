@@ -23,8 +23,39 @@ void regions_init(){
 	// else .....
 }
 
+void *app_init(){
+	struct sockaddr_un local_addr;
+	
+	//assure there was no previous socket with the same name
+	unlink(SOCK_ADDRESS);
 
-void * app_thread(void * CS){
+	//create a socket stream for app_server_addr comunitacion
+	int *sock_fd = (int *) malloc(sizeof(int));
+	*sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (*sock_fd == -1){
+		perror("socket: ");
+		exit (-1);
+	}
+
+	//set the local communication parameters
+	local_addr.sun_family = AF_UNIX;
+	strcpy(local_addr.sun_path, SOCK_ADDRESS);
+
+	//adress the socket (own it)
+	if ( bind(*sock_fd, (struct sockaddr *) &local_addr, sizeof(local_addr)) < 0){
+		perror("bind: ");
+		exit (-1);
+	}
+
+	//get ready to act as a server
+	if (listen (*sock_fd, 2) == -1){
+		perror("listen: ");
+		exit (-1);
+	}
+ return (void *) sock_fd;
+}
+
+void *app_accept(void * CS){
 	client_socket *CS_ = (client_socket *) CS;
 	
 	//stablish connection with the app

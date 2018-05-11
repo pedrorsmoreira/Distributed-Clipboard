@@ -10,12 +10,12 @@
 #include <sys/socket.h>
 
 /**
- * @brief      { creates the connection with the distributed cilpboard }
+ * @brief      creates the connection with the local clipboard
  *
- * @param[in]    clipboard_dir  directory where the local clipboard was launched
+ * @param[in]  clipboard_dir  directory where the local clipboard was launched
  *
- * @return     { returns the clipboard identifier to interact
- *               with the clipboard, or -1 in case of error }
+ * @return     returns the clipboard identifier to interact
+ *             with the clipboard, or -1 in case of error
  */
 int clipboard_connect(char * clipboard_dir){
 	struct sockaddr_un server_addr;
@@ -39,15 +39,15 @@ int clipboard_connect(char * clipboard_dir){
 }
 
 /**
- * @brief      { copies data to a certain region of the clipboard }
+ * @brief      stores data in a certain region of the clipboard
  *
  * @param[in]  clipboard_id  Clipboard identifier - file descriptor
- * @param[in]  region        Clipboard region to copy the data
- * @param[out]  buf        Buffer which the data is pointed by
+ * @param[in]  region        Clipboard region to store the data
+ * @param[in] buf	         Buffer which the data is pointed by
  * @param[in]  count         Number of bytes of data to be copied
  *
- * @return     { retunrs the number of bytes copied
- *               or returns 0 in case of error }
+ * @return     retunrs the number of bytes copied
+ *             or returns 0 in case of error
  */
 int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 	int data_size = sizeof(Smessage);
@@ -76,15 +76,15 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 }
 
 /**
- * @brief      { Copies the data from a certain region of the clipboard }
+ * @brief      Gets data from a certain region of the clipboard
  *
  * @param[in]  clipboard_id  clipboard identifier - file descriptor
  * @param[in]  region        Clipboard region to copy the data
- * @param      buf           Buffer to store the message
+ * @param[out] buf           Buffer to store the message
  * @param[in]  count         Max number of bytes to be stored in the buffer
  *
- * @return     { returns the number of bytes stored in the buffer
- *               or returns 0 in case of error }
+ * @return     returns the number of bytes stored in the buffer
+ *             or returns 0 in case of error
  */
 int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	int data_size = sizeof(Smessage);
@@ -122,23 +122,28 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 }
 
 /**
- * @brief      { function_description }
+ * @brief      Waits on a certain clipboard region to change
+ *             and and sends the new data
  *
- * @param[in]  clipboard_id  The clipboard identifier
- * @param[in]  region        The region
- * @param      buf           The buffer
- * @param[in]  count         The count
+ * @param[in]  clipboard_id  clipboard identifier - file descriptor
+ * @param[in]  region        Clipboard region to copy the data
+ * @param[in]  buf           Buffer to store the message
+ * @param[in]  count         Max number of bytes to be stored in the buffer
  *
- * @return     { description_of_the_return_value }
+ * @return     returns the number of bytes stored in the buffer
+ *             or returns 0 in case of error
  */
 int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
+ /**
+  * NOOOOOOTTTTTT DDDEEEVVEEEELLOOOOOPPPEDDDD YYYEEEETTT
+  */
  return 0;
 }
 
 /**
- * @brief      { function_description }
+ * @brief      breaks the connection with the local clipboard
  *
- * @param[in]  clipboard_id  The clipboard identifier
+ * @param[in]  clipboard_id  clipboard identifier - file descriptor
  */
 void clipboard_close(int clipboard_id){
 	close(clipboard_id);
