@@ -67,7 +67,7 @@ void *app_accept(void * CS){
 	
 	//create new thread for next app connection
 	pthread_t thread_id;
-	if (pthread_create(&thread_id, NULL, app_thread, CS) != 0){
+	if (pthread_create(&thread_id, NULL, app_accept, CS) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}

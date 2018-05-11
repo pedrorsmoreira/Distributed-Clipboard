@@ -12,7 +12,7 @@
 #include <fcntl.h>
 
 
-void *clipboard_accept(){
+void *clipboard_init(){
 
 	struct sockaddr_un local_addr;
 
@@ -40,5 +40,31 @@ void *clipboard_accept(){
 	}
 
 	 return (void *) sock_fd;
-
 }
+
+void *clipboard_accept(void * CS){
+	client_socket *CS_ = (client_socket *) CS;
+	
+	//stablish connection with the app
+	int client_fd = accept( CS_->sock_fd, (struct sockaddr *) &(CS_->addr), &(CS_->size));
+	if (client_fd == -1){
+		perror("accept: ");
+		exit (-1);
+	}
+	
+	//create new thread for next app connection
+	pthread_t thread_id;
+	if (pthread_create(&thread_id, NULL, clipboard_accept, CS) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}
+	
+	//answer current app requests
+	app_handle(client_fd);
+	//HAD TO PUT SOMETHING ON RETURN - MEANINGLESS - CHANGE IT AFTERWARDS
+	return CS;
+}
+
+
+
+
