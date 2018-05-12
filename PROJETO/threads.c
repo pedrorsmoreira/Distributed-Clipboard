@@ -44,6 +44,7 @@ void *server_init(void * family){
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
 		local_addr_un.sun_family = AF_UNIX;
+		strcpy(local_addr.sun_path, SOCK_ADDRESS);
 		local_addr = (struct sockaddr *) &local_addr_un;
 		*sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	}
