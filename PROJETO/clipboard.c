@@ -30,6 +30,31 @@ int main(int argc, char **argv){
 		perror("pthread_create: ");
 		exit(-1);
 	}
+
+////////////////CONNECTED MODE
+	if(strcmp(argc[1], '-c')>0)
+	{
+		char IP [20];
+		strcpy(IP, argv[2]);
+		int port=argv[3];
+		struct sockaddr_in server_addr;
+		int sock_fd= socket(AF_INET, SOCK_STREAM, 0);
+		if (sock_fd == -1){
+			perror("socket: ");
+			exit(-1);
+		}
+
+		server_addr.sin_family = AF_INET;
+		server_addr.sin_port= htons(port);
+		inet_aton(IP, &server_addr.sin_addr);
+	
+		if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+		printf("Error connecting!!!\n");
+		exit(-1);
+		}
+
+	}
+
 //////////////////////////UNIX
 	int *sock_fd_un = NULL;
 	pthread_join(thread_id_un, (void **) &sock_fd_un);
@@ -48,7 +73,7 @@ int main(int argc, char **argv){
 /////////////////////////////INET
 	int *sock_fd_in = NULL;
 	pthread_join(thread_id_in, (void **) &sock_fd_in);
-
+	
 	//temporary, just to keep main alive
 	//think about it do it nice
 	while(1);
