@@ -24,8 +24,9 @@ int main(int argc, char **argv){
 		perror("pthread_create: ");
 		exit(-1);
 	}
+
 	int *sock_fd_un = NULL;
-	pthread_join(thread_id, (void*)sock_fd_un);
+	pthread_join(thread_id, (void **) &sock_fd_un);
 
 	//struct with the client adress info to send to the thread
 	client_socket CS;
