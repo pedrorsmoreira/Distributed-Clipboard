@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <pthread.h>
+#include <arpa/inet.h>
 
 #include "clipboard.h"
 #include "threads.h"
@@ -32,11 +33,11 @@ int main(int argc, char **argv){
 	}
 
 ////////////////CONNECTED MODE
-	if(strcmp(argc[1], '-c')>0)
+	if(strcmp(argv[1], "-c")>0)
 	{
 		char IP [20];
 		strcpy(IP, argv[2]);
-		int port=argv[3];
+		int port=atoi(argv[3]);
 		struct sockaddr_in server_addr;
 		int sock_fd= socket(AF_INET, SOCK_STREAM, 0);
 		if (sock_fd == -1){
