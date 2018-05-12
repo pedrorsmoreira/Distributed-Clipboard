@@ -16,9 +16,10 @@
 #include "regions.h"
 
 /**
- * @brief      Generates a random number that will be assigned to the clipboard port 
+ * @brief      Generates a random number in a valid
+ *             range for a computer port connection
  *
- * @return     Port number
+ * @return     The random number
  */
 int rand_port_gen(){
 	srand(time(NULL));
@@ -27,9 +28,9 @@ int rand_port_gen(){
 }
 
 /**
- * @brief      Initializes servers
+ * @brief      Initializes a socket stream server
  *
- * @param[in]  family  Socket family (UNIX or INET)
+ * @param[in]  family	Stream type (UNIX or INET)
  *
  * @return     socket file descriptor 
  */
@@ -42,7 +43,7 @@ void *server_init(void * family){
 
 	int *sock_fd = (int *) malloc(sizeof(int));
 
-	//set the communication type parameters for both families 
+	//set the communication type parameters 
 	if (family == (void *) UNIX){
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
@@ -62,7 +63,7 @@ void *server_init(void * family){
 		local_addr = (struct sockaddr *) &local_addr_in;
 		*sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 	}
-	
+	//check endpoint creation faliure
 	if (*sock_fd < 0){
 		perror("socket: ");
 		exit (-1);
@@ -79,13 +80,18 @@ void *server_init(void * family){
 		perror("listen: ");
 		exit (-1);
 	}
+
  return (void *) sock_fd;
 }
 
 /**
- * @brief      Accepts a client and creates a new thread to deal with the next client connection
+ * @brief      Recursive function - accepts a socket stream 
+ *             connection every function call and launches 
+ *             the function to process the new connection
  *
- * @param[in]  CS_ struct with the client socket info (file descriptor and family)   
+ * @param[in]  CS_   pointer to stream connection parameters
+ * 
+ * @return     useless
  */
 void *accept_clients(void * CS_){
 	client_socket *CS = (client_socket *) CS_;
@@ -117,19 +123,27 @@ void *accept_clients(void * CS_){
 		exit(-1);
 	}
 
-	clients_handle(client_fd);
+	client_handle(client_fd);
 	
  return NULL;
 }
 
-void clients_handle(int client_fd){
+/**
+ * @brief      handles client requests (copy or paste)
+ *             until it closes the connection	
+ *
+ * @param[in]  client_fd  client file descriptor
+ */
+void client_handle(int client_fd){
 	Smessage data;
 	int data_size = sizeof(Smessage);
 
+	//listens until the connection is closed
 	while ( read(client_fd, &data, data_size) > 0){
+		//check for valid region
 		if ( (data.region < 0) || (data.region > REGIONS_NR))	
 			exit(-2);
-		
+		//copy or paste
 		if (data.order == COPY)	
 			update_region(client_fd, data, data_size);
 		else if (data.order == PASTE)
