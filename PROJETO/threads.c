@@ -15,14 +15,26 @@
 #include "threads.h"
 #include "regions.h"
 
+/**
+ * @brief      Generates a random number that will be assigned to the clipboard port 
+ *
+ * @return     Port number
+ */
 int rand_port_gen(){
 	srand(time(NULL));
 	int ret = 1024 + rand()%63715;
 	return ret;
 }
 
+/**
+ * @brief      Initializes servers
+ *
+ * @param[in]  family  Socket family (UNIX or INET)
+ *
+ * @return     socket file descriptor 
+ */
 void *server_init(void * family){
-	//assure there was no previous socket with the same name
+	//assures there was no previous socket with the same name
 	unlink(SOCK_ADDRESS);
 
 	struct sockaddr *local_addr;
@@ -30,7 +42,7 @@ void *server_init(void * family){
 
 	int *sock_fd = (int *) malloc(sizeof(int));
 
-	//set the communication type parameters
+	//set the communication type parameters for both families 
 	if (family == (void *) UNIX){
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
@@ -56,20 +68,25 @@ void *server_init(void * family){
 		exit (-1);
 	}
 
-	//adress the socket (own it)
+	//address the socket (own it)
 	if ( bind(*sock_fd, local_addr, addrlen) < 0){
 		perror("bind: ");
 		exit (-1);
 	}
 
 	//get ready to act as a server
-	if (listen (*sock_fd, 2) == -1){
+	if (listen (*sock_fd, 10) == -1){
 		perror("listen: ");
 		exit (-1);
 	}
  return (void *) sock_fd;
 }
 
+/**
+ * @brief      Accepts a client and creates a new thread to deal with the next client connection
+ *
+ * @param[in]  CS_ struct with the client socket info (file descriptor and family)   
+ */
 void *accept_clients(void * CS_){
 	client_socket *CS = (client_socket *) CS_;
 
