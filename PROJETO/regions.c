@@ -16,7 +16,13 @@
 
 REG regions[REGIONS_NR];
 
-//COMMENT THIS CODE WHEN BOTH CASES ARE WRITTEN
+/**
+ * @brief      initializes the local clipboard regions
+ *
+ * @param[in]  fd    file descriptor for the remote 
+ * 					 clipboard to pull the regions from 
+ * 					 (fd < 0  indicates single mode)
+ */
 void regions_init(int fd){
 	int i;
 	if (fd < 0){
