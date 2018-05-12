@@ -100,15 +100,12 @@ void *accept_clients(void * CS_){
 		exit(-1);
 	}
 
-	if (CS->family == UNIX)
-		app_handle(client_fd);
-	//else if (CS->family == INET)
-		//ISN'T IT THE SAME AS APP_HANDLE (data.order==COPY) CODE??
-
-return NULL;
+	clients_handle(client_fd);
+	
+ return NULL;
 }
 
-void app_handle(int client_fd){
+void clients_handle(int client_fd){
 	Smessage data;
 	int data_size = sizeof(Smessage);
 

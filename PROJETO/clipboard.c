@@ -53,12 +53,14 @@ int main(int argc, char **argv){
 		exit(-2);
 	}
 
+	//launche the server to handle local apps
 	pthread_t thread_id_un;
 	if (pthread_create(&thread_id_un, NULL, server_init, (void *) UNIX) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
 
+	//launche the server to handle remote clipboardsq
 	pthread_t thread_id_in;
 	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0){
 		perror("pthread_create: ");
@@ -70,24 +72,34 @@ int main(int argc, char **argv){
 	pthread_join(thread_id_un, (void **) &sock_fd_un);
 
 	//struct with the client adress info to send to the thread
-	client_socket CS;
-	CS.sock_fd = *sock_fd_un;
+	client_socket CS_un;
+	CS_un.sock_fd = *sock_fd_un;
 	free(sock_fd_un);
-	CS.family = UNIX;
+	CS_un.family = UNIX;
 
-	//handle apps
-	if (pthread_create(&thread_id_un, NULL, accept_clients, &CS) != 0){
+	//handle local apps
+	if (pthread_create(&thread_id_un, NULL, accept_clients, &CS_un) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
 /////////////////////////////INET
 	int *sock_fd_in = NULL;
 	pthread_join(thread_id_in, (void **) &sock_fd_in);
+
+	client_socket CS_in;
+	CS_in.sock_fd = *sock_fd_in;
+	free(sock_fd_in);
+	CS_in.family = INET;
+
+	//handle remote clipboards
+	if (pthread_create(&thread_id_in, NULL, accept_clients, &CS_in) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}
 	
 	//temporary, just to keep main alive
 	//think about it do it nice
 	while(1);
-
 
 	//final clean
 	/*for (int i = 0; i <REGIONS_NR; i++) free(regions[i]);

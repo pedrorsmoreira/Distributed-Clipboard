@@ -54,6 +54,10 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 	Smessage data;
 	data.region = region;
 	data.order = COPY;
+
+	if (count < 0)
+		return 0;
+
 	data.message_size = count;
 
 	// check for valid region
@@ -82,7 +86,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
  * @param[in]  region        Clipboard region to copy the data
  * @param[out] buf           Buffer to store the message
  * @param[in]  count         Max number of bytes to be stored in the buffer
- * 								if count < 0 no limit is specified
+ * 							 (if count < 0 no limit specified and alloc buffer)
  *
  * @return     returns the number of bytes stored in the buffer
  *             or returns 0 in case of error
@@ -94,7 +98,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	data.order = PASTE;
 
 	// check for valid region
-	if ((region < 0) || (region > REGIONS_NR))	
+	if ((region < 0) || (region > REGIONS_NR) )	
 		return 0;
 
 	//send the region requested
@@ -102,17 +106,30 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		perror("write: ");
 		return 0;
 	}
-printf("olá2\n");
+
 	//read the message specs
 	if (read(clipboard_id, &data, data_size) < 0){
 		perror("read: ");
 		return 0;
 	}
-printf("olá2\n");
+
 	//if the region is empty or message too big
 	if (data.region == -1 || (count > 0 && data.message_size > count))	
 		return 0;
-printf("olá2\n");
+
+	//buffer is not allocated
+	if (count < 0 ){
+		buf  = (void *) malloc(data.message_size);
+		if ( buf == NULL){
+			printf ("malloc failure\n");
+			exit (-1);
+		}
+	} 
+	//check if buffer came allocated
+	else if (buf == NULL)
+		return 0;
+
+
 	//read the message
 	if (read(clipboard_id, buf, data.message_size) < 0){
 		perror("read: ");
