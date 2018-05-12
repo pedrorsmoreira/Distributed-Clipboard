@@ -87,7 +87,7 @@ int main(int argc, char **argv){
 	}
 
 //HANDLE LOCAL APPS AND REMOTE COMMUNICATIONS
-	//set paremeters to handle local apps
+	//set parameters to handle local apps
 	pthread_join(thread_id_un, (void **) &clients_sock_fd);
 	CS_un.sock_fd = *clients_sock_fd;
 	free (clients_sock_fd);
@@ -97,7 +97,7 @@ int main(int argc, char **argv){
 		perror("pthread_create: ");
 		exit(-1);
 	}
-	//set paremeters to handle remote clipboards
+	//set parameters to handle remote clipboards
 	pthread_join(thread_id_in, (void **) &clients_sock_fd);
 	free (clients_sock_fd);
 	CS_in.sock_fd = *clients_sock_fd;
