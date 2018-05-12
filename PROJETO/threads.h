@@ -1,4 +1,5 @@
-
+#define UNIX 0
+#define INET 1
 
 #include <sys/types.h>
 
@@ -9,12 +10,10 @@ typedef struct REG{
 
 typedef struct client_socket{
 	int sock_fd;
-	struct sockaddr_un addr;
-	socklen_t size;
-	int port; 
-	char IP[20]; 
+	int family;
 }client_socket;
 
 void regions_init();
-void * app_thread(void * CS);
+void *server_init(void * family);
+void *accept_clients(void * CS);
 void app_handle(int client_fd);

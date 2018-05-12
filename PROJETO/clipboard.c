@@ -20,26 +20,26 @@ int main(int argc, char **argv){
 	regions_init();
 
 	pthread_t thread_id;
-	if (pthread_create(&thread_id, NULL, app_init, NULL) != 0){
+	if (pthread_create(&thread_id, NULL, server_init, UNIX) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
-	int *sock_fd_l;
-	pthread_join(thread_id, (void*)sock_fd_l);
+	int *sock_fd_un = NULL;
+	pthread_join(thread_id, (void*)sock_fd_un);
 
 	//struct with the client adress info to send to the thread
 	client_socket CS;
-	CS.sock_fd = *sock_fd_l;
-	CS.size = sizeof(struct sockaddr);
-	free(sock_fd_l);
+	CS.sock_fd = *sock_fd_un;
+	free(sock_fd_un);
+	CS.family = UNIX;
 
 	//handle apps
-	if (pthread_create(&thread_id, NULL, thread_accept, &CS) != 0){
+	if (pthread_create(&thread_id, NULL, accept_clients, &CS) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
-
-	if (pthread_create(&thread_id, NULL, distributed_clipboard_init, NULL) != 0){
+/*
+	if (pthre#include <sys/types.h>#include <sys/types.h>#include <sys/types.h>#include <sys/types.h>ad_create(&thread_id, NULL, distributed_clipboard_init, NULL) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
@@ -60,7 +60,7 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 
-
+*/
 	//temporary, just to keep main alive
 	//think about it do it nice
 	while(1);
