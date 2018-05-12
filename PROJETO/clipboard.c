@@ -19,14 +19,20 @@ int main(int argc, char **argv){
 	//initialize the regions
 	regions_init();
 
-	pthread_t thread_id;
-	if (pthread_create(&thread_id, NULL, server_init, UNIX) != 0){
+	pthread_t thread_id_un;
+	if (pthread_create(&thread_id_un, NULL, server_init, (void *) UNIX) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
 
+	pthread_t thread_id_in;
+	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}
+//////////////////////////UNIX
 	int *sock_fd_un = NULL;
-	pthread_join(thread_id, (void **) &sock_fd_un);
+	pthread_join(thread_id_un, (void **) &sock_fd_un);
 
 	//struct with the client adress info to send to the thread
 	client_socket CS;
@@ -35,10 +41,15 @@ int main(int argc, char **argv){
 	CS.family = UNIX;
 
 	//handle apps
-	if (pthread_create(&thread_id, NULL, accept_clients, &CS) != 0){
+	if (pthread_create(&thread_id_un, NULL, accept_clients, &CS) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
+/////////////////////////////INET
+	int *sock_fd_in = NULL;
+	pthread_join(thread_id_in, (void **) &sock_fd_in);
+
+	
 /*
 	if (pthre#include <sys/types.h>#include <sys/types.h>#include <sys/types.h>#include <sys/types.h>ad_create(&thread_id, NULL, distributed_clipboard_init, NULL) != 0){
 		perror("pthread_create: ");

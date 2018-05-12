@@ -24,25 +24,36 @@ void regions_init(){
 	// else .....
 }
 
+int rand_port_gen(){
+	srand(time(NULL));
+	int ret = 1024 + rand()%63715;
+	return ret;
+}
+
 void *server_init(void * family){
 	//assure there was no previous socket with the same name
 	unlink(SOCK_ADDRESS);
 
 	struct sockaddr *local_addr;
+	socklen_t addrlen;
 
 	int *sock_fd = (int *) malloc(sizeof(int));
 
 	//set the communication type parameters
-	if (family == UNIX){
+	if (family == (void *) UNIX){
 		struct sockaddr_un local_addr_un;
+		addrlen = sizeof(local_addr_un);
 		local_addr_un.sun_family = AF_UNIX;
 		local_addr = (struct sockaddr *) &local_addr_un;
 		*sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	}
-	else if (family == INET){
+	else if (family == (void *) INET){
 		struct sockaddr_in local_addr_in;
+		addrlen = sizeof(local_addr_in);
 		local_addr_in.sin_family = AF_INET;
-		local_addr_in.sin_port = htons(3010);
+		int port = rand_port_gen();
+		local_addr_in.sin_port = htons(port);
+		printf("port number: %d\n", port);
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
 		local_addr = (struct sockaddr *) &local_addr_in;
 		*sock_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -54,7 +65,7 @@ void *server_init(void * family){
 	}
 
 	//adress the socket (own it)
-	if ( bind(*sock_fd, local_addr, sizeof(local_addr)) < 0){
+	if ( bind(*sock_fd, local_addr, addrlen) < 0){
 		perror("bind: ");
 		exit (-1);
 	}
