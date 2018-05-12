@@ -60,7 +60,7 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 
-	//launche the server to handle remote clipboard
+	//launche the server to handle remote clipboardsqz
 	pthread_t thread_id_in;
 	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0){
 		perror("pthread_create: ");
@@ -100,4 +100,12 @@ int main(int argc, char **argv){
 	//temporary, just to keep main alive
 	//think about it do it nice
 	while(1);
+
+	//final clean
+	/*for (int i = 0; i <REGIONS_NR; i++) free(regions[i]);
+	unlink(file_name_out);
+	close(fifo_out);
+	unlink(file_name_in);
+	close(fifo_in);
+	exit(0);*/	
 }
