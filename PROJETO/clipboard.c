@@ -14,11 +14,44 @@
 
 #include "clipboard.h"
 #include "threads.h"
+#include "regions.h"
 
  
 int main(int argc, char **argv){		
-	//initialize the regions
-	regions_init();
+	
+	if (argc == 4){
+		if(strcmp(argv[1], "-c") == 0)
+		{
+			int port=atoi(argv[3]);
+			struct sockaddr_in server_addr;
+			int sock_fd= socket(AF_INET, SOCK_STREAM, 0);
+			if (sock_fd == -1){
+				perror("socket: ");
+				exit(-1);
+			}
+
+			server_addr.sin_family = AF_INET;
+			server_addr.sin_port= htons(port);
+			inet_aton(argv[2], &server_addr.sin_addr);
+		
+			if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+			printf("Error connecting!!!\n");
+			exit(-1);
+			}
+
+			regions_init(sock_fd);
+		}
+		else{
+		printf("invalid arguments1\n");
+		exit(-2);
+		}
+	}
+	else if (argc == 1)
+		regions_init(-1);
+	else{
+		printf("invalid arguments2\n");
+		exit(-2);
+	}
 
 	pthread_t thread_id_un;
 	if (pthread_create(&thread_id_un, NULL, server_init, (void *) UNIX) != 0){
@@ -30,30 +63,6 @@ int main(int argc, char **argv){
 	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0){
 		perror("pthread_create: ");
 		exit(-1);
-	}
-
-////////////////CONNECTED MODE
-	if(strcmp(argv[1], "-c")>0)
-	{
-		char IP [20];
-		strcpy(IP, argv[2]);
-		int port=atoi(argv[3]);
-		struct sockaddr_in server_addr;
-		int sock_fd= socket(AF_INET, SOCK_STREAM, 0);
-		if (sock_fd == -1){
-			perror("socket: ");
-			exit(-1);
-		}
-
-		server_addr.sin_family = AF_INET;
-		server_addr.sin_port= htons(port);
-		inet_aton(IP, &server_addr.sin_addr);
-	
-		if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-		printf("Error connecting!!!\n");
-		exit(-1);
-		}
-
 	}
 
 //////////////////////////UNIX

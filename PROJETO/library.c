@@ -82,6 +82,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
  * @param[in]  region        Clipboard region to copy the data
  * @param[out] buf           Buffer to store the message
  * @param[in]  count         Max number of bytes to be stored in the buffer
+ * 								if count < 0 no limit is specified
  *
  * @return     returns the number of bytes stored in the buffer
  *             or returns 0 in case of error
@@ -101,17 +102,17 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		perror("write: ");
 		return 0;
 	}
-
+printf("olá2\n");
 	//read the message specs
 	if (read(clipboard_id, &data, data_size) < 0){
 		perror("read: ");
 		return 0;
 	}
-
+printf("olá2\n");
 	//if the region is empty or message too big
-	if (data.region == -1 || data.message_size > count)	
+	if (data.region == -1 || (count > 0 && data.message_size > count))	
 		return 0;
-
+printf("olá2\n");
 	//read the message
 	if (read(clipboard_id, buf, data.message_size) < 0){
 		perror("read: ");

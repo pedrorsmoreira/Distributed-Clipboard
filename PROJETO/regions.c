@@ -17,11 +17,19 @@
 REG regions[REGIONS_NR];
 
 //COMMENT THIS CODE WHEN BOTH CASES ARE WRITTEN
-void regions_init(){
-	// if (working alone)
-		for (int i = 0; i <REGIONS_NR; i++)
+void regions_init(int fd){
+	int i;
+	if (fd < 0){
+		for (i = 0; i <REGIONS_NR; i++)
 			regions[i].message = NULL;
-	// else .....
+	}
+	else{
+		for (i = 0; i <REGIONS_NR; i++){
+		printf("olá\n");
+			regions[i].size = clipboard_paste(fd, i, regions[i].message, -1);
+		printf("oi%d\n", i);
+		}
+	}
 }
 
 
@@ -69,5 +77,6 @@ void send_region(int client_fd, Smessage data, int data_size){
 		perror("write: ");
 		exit(-1);
 	}
-	
+	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
+	printf("pasted %s to region %d\n", (char *) regions[data.region].message, data.region);
 }

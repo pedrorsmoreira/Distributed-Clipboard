@@ -8,7 +8,6 @@ typedef struct client_socket{
 	int family;
 }client_socket;
 
-void regions_init();
 void *server_init(void * family);
 void *accept_clients(void * CS);
 void app_handle(int client_fd);
