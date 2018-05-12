@@ -10,4 +10,4 @@ typedef struct client_socket{
 
 void *server_init(void * family);
 void *accept_clients(void * CS);
-void clients_handle(int client_fd);
+void client_handle(int client_fd);

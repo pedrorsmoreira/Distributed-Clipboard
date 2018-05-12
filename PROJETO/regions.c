@@ -29,8 +29,14 @@ void regions_init(int fd){
 	}
 }
 
-
-void update_region( int client_fd, Smessage data, int data_size){
+/**
+ * @brief      updates a clipboard region
+ *
+ * @param[in]  fd         file descriptor to recieve the message
+ * @param[in]  data       struct with message info
+ * @param[in]  data_size  message size in bytes
+ */
+void update_region( int fd, Smessage data, int data_size){
 	if ( regions[data.region].message != NULL)
 		free(regions[data.region].message);
 
@@ -42,7 +48,7 @@ void update_region( int client_fd, Smessage data, int data_size){
 	}
 
 	//read the message and copy it
-	if ( read(client_fd, regions[data.region].message, data.message_size) < 0){
+	if ( read(fd, regions[data.region].message, data.message_size) < 0){
 		perror("read: ");
 		exit(-1);
 	}
@@ -51,7 +57,14 @@ void update_region( int client_fd, Smessage data, int data_size){
 	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
 }
 
-void send_region(int client_fd, Smessage data, int data_size){
+/**
+ * @brief      Sends a cilpboard region message
+ *
+ * @param[in]  fd         file descriptor to send the message
+ * @param[in]  data       struct with the message info
+ * @param[in]  data_size  message size in bytes
+ */
+void send_region(int fd, Smessage data, int data_size){
 	//check if there's anything to paste
 	if (regions[data.region].message == NULL){
 		printf("nothing to paste in region %d \n", data.region);
@@ -60,8 +73,8 @@ void send_region(int client_fd, Smessage data, int data_size){
 	else
 		data.message_size = regions[data.region].size;
 	
-	//send back the message info
-	if ( write(client_fd, &data, data_size) < 0){
+	//send the message info
+	if ( write(fd, &data, data_size) < 0){
 		perror("write: ");
 		exit(-1);
 	}
@@ -70,7 +83,7 @@ void send_region(int client_fd, Smessage data, int data_size){
 		return;
 	
 	//send the message requested
-	if ( write(client_fd, regions[data.region].message, data.message_size) < 0){
+	if ( write(fd, regions[data.region].message, data.message_size) < 0){
 		perror("write: ");
 		exit(-1);
 	}
