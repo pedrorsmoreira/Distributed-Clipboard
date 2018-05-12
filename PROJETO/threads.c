@@ -28,7 +28,7 @@ void *server_init(void * family){
 	//assure there was no previous socket with the same name
 	unlink(SOCK_ADDRESS);
 
-	struct sockaddr local_addr;
+	struct sockaddr *local_addr;
 
 	int *sock_fd = (int *) malloc(sizeof(int));
 
@@ -36,7 +36,7 @@ void *server_init(void * family){
 	if (family == UNIX){
 		struct sockaddr_un local_addr_un;
 		local_addr_un.sun_family = AF_UNIX;
-		local_addr = (struct sockaddr) local_addr_un;
+		local_addr = (struct sockaddr *) &local_addr_un;
 		*sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	}
 	else if (family == INET){
@@ -44,7 +44,7 @@ void *server_init(void * family){
 		local_addr_in.sin_family = AF_INET;
 		local_addr_in.sin_port = htons(3010);
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
-		local_addr = (struct sockaddr) local_addr_in;
+		local_addr = (struct sockaddr *) &local_addr_in;
 		*sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 	}
 	
@@ -54,7 +54,7 @@ void *server_init(void * family){
 	}
 
 	//adress the socket (own it)
-	if ( bind(*sock_fd, &local_addr, sizeof(local_addr)) < 0){
+	if ( bind(*sock_fd, local_addr, sizeof(local_addr)) < 0){
 		perror("bind: ");
 		exit (-1);
 	}
@@ -70,21 +70,21 @@ void *server_init(void * family){
 void *accept_clients(void * CS_){
 	client_socket *CS = (client_socket *) CS_;
 
-	struct sockaddr client_addr;
+	struct sockaddr *client_addr;
 	
 	if (CS->family == UNIX){
 		struct sockaddr_un client_addr_un;
-		client_addr = (struct sockaddr) client_addr_un;
+		client_addr = (struct sockaddr *) &client_addr_un;
 	}
 	else if (CS->family == INET){
 		struct sockaddr_in client_addr_in;
-		client_addr = (struct sockaddr) client_addr_in;
+		client_addr = (struct sockaddr *) &client_addr_in;
 	}
 	
 	socklen_t size = sizeof(struct sockaddr);
 	
 	//stablish connection with the client
-	int client_fd = accept( CS->sock_fd, &client_addr, &size);
+	int client_fd = accept( CS->sock_fd, client_addr, &size);
 	if (client_fd == -1){
 		perror("accept: ");
 		exit (-1);
