@@ -13,16 +13,7 @@
 
 #include "clipboard.h"
 #include "threads.h"
-
-REG regions[REGIONS_NR];
-
-//COMMENT THIS CODE WHEN BOTH CASES ARE WRITTEN
-void regions_init(){
-	// if (working alone)
-		for (int i = 0; i <REGIONS_NR; i++)
-			regions[i].message = NULL;
-	// else .....
-}
+#include "regions.h"
 
 int rand_port_gen(){
 	srand(time(NULL));
@@ -44,7 +35,7 @@ void *server_init(void * family){
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
 		local_addr_un.sun_family = AF_UNIX;
-		strcpy(local_addr.sun_path, SOCK_ADDRESS);
+		strcpy(local_addr_un.sun_path, SOCK_ADDRESS);
 		local_addr = (struct sockaddr *) &local_addr_un;
 		*sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	}
@@ -53,8 +44,8 @@ void *server_init(void * family){
 		addrlen = sizeof(local_addr_in);
 		local_addr_in.sin_family = AF_INET;
 		int port = rand_port_gen();
-		local_addr_in.sin_port = htons(port);
 		printf("port number: %d\n", port);
+		local_addr_in.sin_port = htons(port);
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
 		local_addr = (struct sockaddr *) &local_addr_in;
 		*sock_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -117,7 +108,6 @@ void *accept_clients(void * CS_){
 return NULL;
 }
 
-
 void app_handle(int client_fd){
 	Smessage data;
 	int data_size = sizeof(Smessage);
@@ -126,74 +116,10 @@ void app_handle(int client_fd){
 		if ( (data.region < 0) || (data.region > REGIONS_NR))	
 			exit(-2);
 		
-		if (data.order == COPY){	
-			// if something is already copied in this region, replace it
-			if ( regions[data.region].message != NULL)
-				free(regions[data.region].message);
-
-			regions[data.region].size = data.message_size;
-			regions[data.region].message = (void *) malloc (data.message_size);
-			if ( regions[data.region].message == NULL){
-				printf ("malloc failure\n");
-				exit (-1);
-			}
-
-			//read the message and copy it
-			if ( read(client_fd, regions[data.region].message, data.message_size) < 0){
-				perror("read: ");
-				exit(-1);
-			}
-			
-			//TEMPORARY PRINT FOR TESTING - TO BE DELETED
-			printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);	
-		}else if (data.order == PASTE){
-			//check if there's anything to paste
-			if (regions[data.region].message == NULL){
-				printf("nothing to paste in region %d \n", data.region);
-				data.region = -1;
-			}
-			else
-				data.message_size = regions[data.region].size;
-			
-			//send back the message info
-			if ( write(client_fd, &data, data_size) < 0){
-				perror("write: ");
-				exit(-1);
-			}
-
-			if (data.region == -1)	
-				continue;
-			
-			//send the message requested
-			if ( write(client_fd, regions[data.region].message, data.message_size) < 0){
-				perror("write: ");
-				exit(-1);
-			}
-	
-		}
+		if (data.order == COPY)	
+			update_region(client_fd, data, data_size);
+		else if (data.order == PASTE)
+			send_region(client_fd, data, data_size);
 		else exit(-2);
 	}
 }
-/*
-void *distributed_clipboard_client(){
-	
-	struct sockaddr_in server_addr;
-	int sock_fd= socket(AF_INET, SOCK_STREAM, 0);
-	if (sock_fd == -1){
-		perror("socket: ");
-		exit(-1);
-	}
-
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port= htons(3000);
-	inet_aton("193.136.128.104", &server_addr.sin_addr);
-	 
-	
-	if( -1 == connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))){
-		printf("Error connecting\n");
-		exit(-1);
-	}
-
-
-
-}*/

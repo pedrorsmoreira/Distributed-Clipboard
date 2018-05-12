@@ -3,11 +3,6 @@
 
 #include <sys/types.h>
 
-typedef struct REG{
-	size_t size;
-	void *message;
-}REG;
-
 typedef struct client_socket{
 	int sock_fd;
 	int family;
