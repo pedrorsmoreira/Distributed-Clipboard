@@ -58,6 +58,8 @@ int main(int argc, char **argv){
 			server_sock_fd = connected_clipboard_init(argv[2], argv[3]);
 			//upload regions from clients_sock_fdclients_sock_fdthe clipboard "server"
 			regions_init(server_sock_fd);
+			//create threads to update the clipboard "server" regions
+			ppppppppppppppppppppppppppppppppppppp
 		}
 		else{
 		printf("invalid mode\n");
@@ -72,7 +74,7 @@ int main(int argc, char **argv){
 		exit(-2);
 	}
 
-//LAUNCH CLIPBOARDS AND APPS SERVERS
+//LAUNCH OTHER CLIPBOARD SERVERS AND APP SERVERS
 	//launch the server to handle local(unix) apps connections
 	pthread_t thread_id_un;
 	if (pthread_create(&thread_id_un, NULL, server_init, (void *) UNIX) != 0){
@@ -91,7 +93,7 @@ int main(int argc, char **argv){
 	pthread_join(thread_id_un, (void **) &clients_sock_fd);
 	CS_un.sock_fd = *clients_sock_fd;
 	free (clients_sock_fd);
-	CS_un.family = UNIX;
+	CS_un.param = UNIX;
 	//handle local apps (one thread per app)
 	if (pthread_create(&thread_id_un, NULL, accept_clients, &CS_un) != 0){
 		perror("pthread_create: ");
@@ -101,7 +103,7 @@ int main(int argc, char **argv){
 	pthread_join(thread_id_in, (void **) &clients_sock_fd);
 	free (clients_sock_fd);
 	CS_in.sock_fd = *clients_sock_fd;
-	CS_in.family = INET;
+	CS_in.param = INET;
 	//handle remote clipboards (one thread per clipboard)
 	if (pthread_create(&thread_id_in, NULL, accept_clients, &CS_in) != 0){
 		perror("pthread_create: ");

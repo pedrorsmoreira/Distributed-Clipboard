@@ -5,7 +5,7 @@
 
 typedef struct client_socket{
 	int sock_fd;
-	int family;
+	int param;
 }client_socket;
 
 void *server_init(void * family);
