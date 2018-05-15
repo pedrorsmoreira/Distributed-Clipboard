@@ -19,6 +19,7 @@ REG regions[REGIONS_NR];
 
 int connected_clipboard_init(char *IP, char *port_){
 	int port = atoi(port_);
+	int sock_fd[2];
 	
 	//set te connection paremeters
 	struct sockaddr_in server_addr;
@@ -26,25 +27,20 @@ int connected_clipboard_init(char *IP, char *port_){
 	server_addr.sin_port = htons(port);
 	inet_aton(IP, &server_addr.sin_addr);
 	
-	//create the endpoints to connect
-	int server_fd_recv = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock_fd == -1){
-		perror("socket: ");
+	//connect with clipboard "server" to send(0) and recv(1)
+	for (int i = 0; i < 2; i ++){
+		if (sock_fd[i] = socket(AF_INET, SOCK_STREAM, 0) < 0){
+			perror("socket: ");
+			exit(-1);
+		}
+		if(connect(sock_fd[i], (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+		printf("Error connecting!!!\n");
 		exit(-1);
+		}
 	}
-	server_fd_send = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock_fd == -1){
-		perror("socket: ");
-		exit(-1);
-	}
-
-	//connect with clipboard "server"
-	if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-	printf("Error connecting!!!\n");
-	exit(-1);
-	}
-
- return server_fd_recv;
+ 
+ server_fd_send = sock_fd[0];
+ return sock_fd[1];
 }
 
 /**
