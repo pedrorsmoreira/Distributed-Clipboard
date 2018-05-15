@@ -16,6 +16,16 @@
 
 int server_fd_send;
 REG regions[REGIONS_NR];
+pthread_mutex_t mutex; 
+
+void init_mutex()
+{
+	if(pthread_mutex_init(&mutex, NULL) != 0)
+	{	
+		perror("mutex init: ");
+		exit(-1); 
+	}
+}
 
 int redundant_server(){
 	int fd[2];
@@ -106,7 +116,15 @@ void send_up_region(int fd, Smessage data, int data_size){
 		perror("read: ");
 		exit(-1);
 	}
-//ENTRA NO MUTEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+	//lock the mutex 
+	if (pthread_mutex_lock(&mutex)!=0)
+	{
+		perror("mutex lock:");
+		exit(-1);
+	}
+
+	////////CRITICAL REGION 
 	//send up the message info
 	if ( write(server_fd_send, &data, data_size) < 0){
 		perror("write: ");
@@ -118,7 +136,14 @@ void send_up_region(int fd, Smessage data, int data_size){
 		perror("write: ");
 		exit(-1);
 	}
-// SAI DO MUTEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	////////END OF CRITICAL REGION
+
+	//unlock the mutex 
+	if (pthread_mutex_unlock(&mutex)!=0)
+	{
+		perror("mutex unlock:");
+		exit(-1);
+	}
 
 }
 
