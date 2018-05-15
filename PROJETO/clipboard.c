@@ -38,8 +38,10 @@ int main(int argc, char **argv){
 		}
 	}
 	//single mode init
-	else if (argc == 1)
+	else if (argc == 1){
 		regions_init(-1);
+		server_fd_recv = redundant_server();
+	}
 	else{
 		printf("invalid number of arguments\n");
 		exit(-2);
@@ -81,7 +83,10 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 
-	//temporary, just to keep main alive
-	//think about it do it nice
-	while(1);
+	//recieve updates from the clipboard "server"
+	client_handle(server_fd_recv, UP);
+	server_fd_recv = redundant_server();
+	client_handle(server_fd_recv, UP);
+ 
+ eixt (-1);
 }

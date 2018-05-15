@@ -62,6 +62,7 @@ void *server_init(void * family){
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
 		local_addr = (struct sockaddr *) &local_addr_in;
 		*sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+		
 	}
 	//check endpoint creation faliure
 	if (*sock_fd < 0){
@@ -123,7 +124,7 @@ void *accept_clients(void * CS_){
 		exit(-1);
 	}
 
-	client_handle(client_fd);
+	client_handle(client_fd, DOWN);
 	
  return NULL;
 }
@@ -134,7 +135,7 @@ void *accept_clients(void * CS_){
  *
  * @param[in]  client_fd  client file descriptor
  */
-void client_handle(int client_fd, int reference{
+void client_handle(int client_fd, int reference){
 	Smessage data;
 	int data_size = sizeof(Smessage);
 

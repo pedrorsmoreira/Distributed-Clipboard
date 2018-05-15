@@ -17,6 +17,14 @@
 int server_fd_send;
 REG regions[REGIONS_NR];
 
+int redundant_server(){
+	int fd[2];
+	pipe(fd);
+	server_fd_send = fd[1];
+ 
+ return fd[2];
+}
+
 int connected_clipboard_init(char *IP, char *port_){
 	int port = atoi(port_);
 	int sock_fd[2];
