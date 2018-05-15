@@ -99,8 +99,8 @@ int main(int argc, char **argv){
 	}
 	//set parameters to handle remote clipboards
 	pthread_join(thread_id_in, (void **) &clients_sock_fd);
-	free (clients_sock_fd);
 	CS_in.sock_fd = *clients_sock_fd;
+	free (clients_sock_fd);
 	CS_in.family = INET;
 	//handle remote clipboards (one thread per clipboard)
 	if (pthread_create(&thread_id_in, NULL, accept_clients, &CS_in) != 0){
