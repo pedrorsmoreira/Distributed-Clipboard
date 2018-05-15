@@ -45,6 +45,9 @@ int main(int argc, char **argv){
 		exit(-2);
 	}
 
+	//initializes the mutex 
+	init_mutex(); 
+
 //LAUNCH CLIPBOARDS AND APPS SERVERS
 	//launch the server to handle local(unix) apps connections
 	pthread_t thread_id_un;
