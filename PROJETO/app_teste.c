@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#define MESSAGE_SIZE 100
+#define MESSAGE_SIZE 10000
 
 int read_region(){
 	int region;

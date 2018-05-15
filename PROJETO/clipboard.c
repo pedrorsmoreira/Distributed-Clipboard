@@ -16,46 +16,19 @@
 #include "threads.h"
 #include "regions.h"
 
-int connected_clipboard_init(char *IP, char *port_){
-	int port = atoi(port_);
-	
-	//set te connection paremeters
-	struct sockaddr_in server_addr;
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(port);
-	inet_aton(IP, &server_addr.sin_addr);
-	
-	//create the endpoint to connect
-	int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock_fd == -1){
-		perror("socket: ");
-		exit(-1);
-	}
 
-	//connect with clipboard "server"
-	if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-	printf("Error connecting!!!\n");
-	exit(-1);
-	}
-
-	
-	regions_init(sock_fd);
- return sock_fd;
-}
-
- 
 int main(int argc, char **argv){		
-	int server_sock_fd;
+	int server_fd_recv;
 	int *clients_sock_fd = NULL;
 	client_socket CS_un;
 	client_socket CS_in;
 
-//INITIALIZE CLIPBOARDS
+//INITIALIZE LOCAL CLIPBOARD
 	//connected mode init
 	if (argc == 4){
 		if(strcmp(argv[1], "-c") == 0){
 			//connect with clipboard "server"
-			server_sock_fd = connected_clipboard_init(argv[2], argv[3]);
+			server_fd_recv = connected_clipboard_init(argv[2], argv[3]);
 			//upload regions from clients_sock_fdclients_sock_fdthe clipboard "server"
 			regions_init(server_sock_fd);
 		}

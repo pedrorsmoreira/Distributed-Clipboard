@@ -1,5 +1,7 @@
 #define UNIX 0
 #define INET 1
+#define DOWN 0
+#define UP 1
 
 #include <sys/types.h>
 

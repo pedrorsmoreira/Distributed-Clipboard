@@ -14,7 +14,38 @@
 #include "clipboard.h"
 #include "regions.h"
 
+int server_fd_send;
 REG regions[REGIONS_NR];
+
+int connected_clipboard_init(char *IP, char *port_){
+	int port = atoi(port_);
+	
+	//set te connection paremeters
+	struct sockaddr_in server_addr;
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = htons(port);
+	inet_aton(IP, &server_addr.sin_addr);
+	
+	//create the endpoints to connect
+	int server_fd_recv = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock_fd == -1){
+		perror("socket: ");
+		exit(-1);
+	}
+	server_fd_send = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock_fd == -1){
+		perror("socket: ");
+		exit(-1);
+	}
+
+	//connect with clipboard "server"
+	if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+	printf("Error connecting!!!\n");
+	exit(-1);
+	}
+
+ return server_fd_recv;
+}
 
 /**
  * @brief      initializes the local clipboard regions
@@ -61,6 +92,30 @@ void update_region( int fd, Smessage data, int data_size){
 	
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
+}
+
+void send_up_region(int fd, Smessage data, int data_size){
+	void *buf;
+
+	//read the message
+	if ( read(fd, buf, data.message_size) < 0){
+		perror("read: ");
+		exit(-1);
+	}
+//ENTRA NO MUTEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+	//send up the message info
+	if ( write(server_fd_send, &data, data_size) < 0){
+		perror("write: ");
+		exit(-1);
+	}
+
+	//send up the message
+	if ( write(server_fd_send, buf, data.message_size) < 0){
+		perror("write: ");
+		exit(-1);
+	}
+// SAI DO MUTEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
 }
 
 /**

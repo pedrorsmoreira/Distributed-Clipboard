@@ -134,7 +134,7 @@ void *accept_clients(void * CS_){
  *
  * @param[in]  client_fd  client file descriptor
  */
-void client_handle(int client_fd){
+void client_handle(int client_fd, int reference{
 	Smessage data;
 	int data_size = sizeof(Smessage);
 
@@ -144,8 +144,12 @@ void client_handle(int client_fd){
 		if ( (data.region < 0) || (data.region > REGIONS_NR))	
 			exit(-2);
 		//copy or paste
-		if (data.order == COPY)	
-			update_region(client_fd, data, data_size);
+		if (data.order == COPY)
+			if (reference == UP)
+				update_region(client_fd, data, data_size);
+			else if (reference == DOWN){
+				send_up_region(client_fd, data, data_size);
+			}
 		else if (data.order == PASTE)
 			send_region(client_fd, data, data_size);
 		else exit(-2);
