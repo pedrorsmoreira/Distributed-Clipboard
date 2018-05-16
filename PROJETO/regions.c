@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <pthread.h>
+#include <arpa/inet.h>
 
 #include "clipboard.h"
 #include "regions.h"
@@ -33,12 +34,15 @@ down_list *remove_down_list(down_list *head, int client_fd_send){
 		return next;
 	}
 
+	down_list *head_ret = head;
 	while (head->next->fd != client_fd_send)
 		head = head->next;
 
-	down_list aux = head->next->next; 
+	down_list * aux = head->next->next; 
 	free(head->next);
 	head->next=aux;
+
+ return head_ret;
 }
 
 void init_mutex(int param){
@@ -60,7 +64,7 @@ int redundant_server(){
 	pipe(fd);
 	server_fd_send = fd[1];
  
- return fd[2];
+ return fd[0];
 }
 
 int connected_clipboard_init(char *IP, char *port_){
@@ -75,7 +79,7 @@ int connected_clipboard_init(char *IP, char *port_){
 	
 	//connect with clipboard "server" to send(0) and recv(1)
 	for (int i = 0; i < 2; i ++){
-		if (sock_fd[i] = socket(AF_INET, SOCK_STREAM, 0) < 0){
+		if ((sock_fd[i] = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 			perror("socket: ");
 			exit(-1);
 		}
@@ -159,7 +163,7 @@ void update_region( down_list *head, int fd, Smessage data, int data_size){
 }
 
 void send_up_region(int fd, Smessage data, int data_size){
-	void *buf;
+	void *buf = NULL;
 
 	//read the message
 	if ( read(fd, buf, data.message_size) < 0){
@@ -202,7 +206,7 @@ void send_up_region(int fd, Smessage data, int data_size){
  * @param[in]  data       struct with the message info
  * @param[in]  data_size  message size in bytes
  */
-void send_region(int fd, Smessage data, int data_size){
+void send_region(int fd, Smessage data, int data_size){printf("a\n");
 	//check if there's anything to paste
 	if (regions[data.region].message == NULL){
 		printf("nothing to paste in region %d \n", data.region);
@@ -210,16 +214,16 @@ void send_region(int fd, Smessage data, int data_size){
 	}
 	else
 		data.message_size = regions[data.region].size;
-	
+	printf("a\n");
 	//send the message info
 	if ( write(fd, &data, data_size) < 0){
 		perror("write: ");
 		exit(-1);
 	}
-
+printf("b\n");
 	if (data.region == -1)	
 		return;
-	
+	printf("c\n");
 	//send the message requested
 	if ( write(fd, regions[data.region].message, data.message_size) < 0){
 		perror("write: ");

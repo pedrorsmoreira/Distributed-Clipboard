@@ -100,19 +100,19 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	// check for valid region
 	if ((region < 0) || (region > REGIONS_NR) )	
 		return 0;
-
+printf("1\n");
 	//send the region requested
 	if (write(clipboard_id, &data, data_size) < 0){
 		perror("write: ");
 		return 0;
 	}
-
+printf("2\n");
 	//read the message specs
 	if (read(clipboard_id, &data, data_size) < 0){
 		perror("read: ");
 		return 0;
 	}
-
+printf("3\n");
 	//if the region is empty or message too big
 	if (data.region == -1 || (count > 0 && data.message_size > count))	
 		return 0;
@@ -135,7 +135,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		perror("read: ");
 		exit(-1);
 	}
-
+printf("4\n");
  return data.message_size;
 }
 

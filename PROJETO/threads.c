@@ -126,13 +126,13 @@ void *accept_clients(void * CS_){
 	}
 	
 	//lock the mutex 
-	if (pthread_mutex_lock(&mutex_writeUP)!=0){
+	if (pthread_mutex_lock(&mutex_list)!=0){
 		perror("mutex lock:");
 		exit(-1);
 	}
 	head = add_down_list(head, client_fd_send);
 	//unlock the mutex 
-	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
+	if (pthread_mutex_unlock(&mutex_list)!=0){
 		perror("mutex unlock:");
 		exit(-1);
 	}
@@ -147,13 +147,13 @@ void *accept_clients(void * CS_){
 	connection_handle(client_fd_recv, DOWN);
 	
 	//lock the mutex 
-	if (pthread_mutex_lock(&mutex_writeUP)!=0){
+	if (pthread_mutex_lock(&mutex_list)!=0){
 		perror("mutex lock:");
 		exit(-1);
 	}
-	head = remove_down_list(head, client_fd_send)
+	head = remove_down_list(head, client_fd_send);
 	//unlock the mutex 
-	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
+	if (pthread_mutex_unlock(&mutex_list)!=0){
 		perror("mutex unlock:");
 		exit(-1);
 	}
@@ -177,11 +177,12 @@ void connection_handle(int fd, int reference){
 		if ( (data.region < 0) || (data.region > REGIONS_NR))	
 			exit(-2);
 		//copy or paste
-		if (data.order == COPY)
+		if (data.order == COPY){
 			if (reference == UP)
 				update_region(head, fd, data, data_size);
 			else if (reference == DOWN)
 				send_up_region(fd, data, data_size);
+		}
 		else if (data.order == PASTE)
 			send_region(fd, data, data_size);
 		else exit(-2);

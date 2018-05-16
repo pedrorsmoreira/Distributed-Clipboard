@@ -1,6 +1,9 @@
 #ifndef REGIONS 
 #define REGIONS 
 
+#define WRITE 0
+#define LIST 1
+
 typedef struct REG{
 	size_t size;
 	void *message;

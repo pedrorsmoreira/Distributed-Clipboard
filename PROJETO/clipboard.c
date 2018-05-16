@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 			//connect with clipboard "server"
 			server_fd_recv = connected_clipboard_init(argv[2], argv[3]);
 			//upload regions from clients_sock_fdclients_sock_fdthe clipboard "server"
-			regions_init(server_sock_fd);
+			regions_init(server_fd_recv);
 		}
 		else{
 		printf("invalid mode\n");
@@ -91,5 +91,5 @@ int main(int argc, char **argv){
 	server_fd_recv = redundant_server();
 	connection_handle(server_fd_recv, UP);
  
- eixt (-1);
+ exit (-1);
 }
