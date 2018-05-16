@@ -15,6 +15,9 @@
 #include "threads.h"
 #include "regions.h"
 
+down_list *head = NULL;
+extern pthread_mutex_t mutex_list;
+
 /**
  * @brief      Generates a random number in a valid
  *             range for a computer port connection
@@ -62,7 +65,7 @@ void *server_init(void * family){
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
 		local_addr = (struct sockaddr *) &local_addr_in;
 		*sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-		
+		init_mutex(LIST);
 	}
 	//check endpoint creation faliure
 	if (*sock_fd < 0){
@@ -110,13 +113,30 @@ void *accept_clients(void * CS_){
 	
 	socklen_t size = sizeof(struct sockaddr);
 	
-	//stablish connection with the client
-	int client_fd = accept( CS->sock_fd, client_addr, &size);
-	if (client_fd == -1){
+	//stablish connections with the client
+	int client_fd_recv = accept( CS->sock_fd, client_addr, &size);
+	if (client_fd_recv == -1){
+		perror("accept: ");
+		exit (-1);
+	}
+	int client_fd_send = accept( CS->sock_fd, client_addr, &size);
+	if (client_fd_send == -1){
 		perror("accept: ");
 		exit (-1);
 	}
 	
+	//lock the mutex 
+	if (pthread_mutex_lock(&mutex_writeUP)!=0){
+		perror("mutex lock:");
+		exit(-1);
+	}
+	head = add_down_list(head, client_fd_send);
+	//unlock the mutex 
+	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
+		perror("mutex unlock:");
+		exit(-1);
+	}
+
 	//create new thread for next client connection
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, accept_clients, CS) != 0){
@@ -124,7 +144,19 @@ void *accept_clients(void * CS_){
 		exit(-1);
 	}
 
-	client_handle(client_fd, DOWN);
+	connection_handle(client_fd_recv, DOWN);
+	
+	//lock the mutex 
+	if (pthread_mutex_lock(&mutex_writeUP)!=0){
+		perror("mutex lock:");
+		exit(-1);
+	}
+	head = remove_down_list(head, client_fd_send)
+	//unlock the mutex 
+	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
+		perror("mutex unlock:");
+		exit(-1);
+	}
 	
  return NULL;
 }
@@ -133,26 +165,25 @@ void *accept_clients(void * CS_){
  * @brief      handles client requests (copy or paste)
  *             until it closes the connection	
  *
- * @param[in]  client_fd  client file descriptor
+ * @param[in]  client_fd_recv  client file descriptor
  */
-void client_handle(int client_fd, int reference){
+void connection_handle(int fd, int reference){
 	Smessage data;
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( read(client_fd, &data, data_size) > 0){
+	while ( read(fd, &data, data_size) > 0){
 		//check for valid region
 		if ( (data.region < 0) || (data.region > REGIONS_NR))	
 			exit(-2);
 		//copy or paste
 		if (data.order == COPY)
 			if (reference == UP)
-				update_region(client_fd, data, data_size);
-			else if (reference == DOWN){
-				send_up_region(client_fd, data, data_size);
-			}
+				update_region(head, fd, data, data_size);
+			else if (reference == DOWN)
+				send_up_region(fd, data, data_size);
 		else if (data.order == PASTE)
-			send_region(client_fd, data, data_size);
+			send_region(fd, data, data_size);
 		else exit(-2);
 	}
 }

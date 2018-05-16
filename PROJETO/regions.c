@@ -16,12 +16,40 @@
 
 int server_fd_send;
 REG regions[REGIONS_NR];
-pthread_mutex_t mutex; 
+pthread_mutex_t mutex_writeUP;
+pthread_mutex_t mutex_list;
 
-void init_mutex()
-{
-	if(pthread_mutex_init(&mutex, NULL) != 0)
-	{	
+down_list *add_down_list(down_list *head, int client_fd_send){
+	down_list *new_head = (down_list*) malloc (sizeof(down_list));
+	new_head->fd = client_fd_send;
+	new_head->next = head;
+	return new_head;
+}
+
+down_list *remove_down_list(down_list *head, int client_fd_send){
+	if (head->fd == client_fd_send){
+		down_list *next = head->next;
+		free(head);
+		return next;
+	}
+
+	while (head->next->fd != client_fd_send)
+		head = head->next;
+
+	down_list aux = head->next->next; 
+	free(head->next);
+	head->next=aux;
+}
+
+void init_mutex(int param){
+	pthread_mutex_t mutex;
+	
+	if (param == WRITE)
+		mutex = mutex_writeUP;
+	else if (param == LIST)
+		mutex = mutex_list;
+
+	if(pthread_mutex_init(&mutex, NULL) != 0){	
 		perror("mutex init: ");
 		exit(-1); 
 	}
@@ -87,7 +115,7 @@ void regions_init(int fd){
  * @param[in]  data       struct with message info
  * @param[in]  data_size  message size in bytes
  */
-void update_region( int fd, Smessage data, int data_size){
+void update_region( down_list *head, int fd, Smessage data, int data_size){
 	if ( regions[data.region].message != NULL)
 		free(regions[data.region].message);
 
@@ -106,6 +134,28 @@ void update_region( int fd, Smessage data, int data_size){
 	
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
+
+	//lock the mutex 
+	if (pthread_mutex_lock(&mutex_writeUP)!=0){
+		perror("mutex lock:");
+		exit(-1);
+	}
+	while(head != NULL){
+		if (write(head->fd, &data, data_size) < 0){
+			perror("write: ");
+			exit(-1);
+		}
+		if ( write(head->fd, regions[data.region].message, data.message_size) < 0){
+			perror("write: ");
+			exit(-1);
+		}
+	 head = head->next;
+	}
+	//unlock the mutex 
+	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
+		perror("mutex unlock:");
+		exit(-1);
+	}
 }
 
 void send_up_region(int fd, Smessage data, int data_size){
@@ -118,8 +168,7 @@ void send_up_region(int fd, Smessage data, int data_size){
 	}
 
 	//lock the mutex 
-	if (pthread_mutex_lock(&mutex)!=0)
-	{
+	if (pthread_mutex_lock(&mutex_writeUP)!=0){
 		perror("mutex lock:");
 		exit(-1);
 	}
@@ -139,8 +188,7 @@ void send_up_region(int fd, Smessage data, int data_size){
 	////////END OF CRITICAL REGION
 
 	//unlock the mutex 
-	if (pthread_mutex_unlock(&mutex)!=0)
-	{
+	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
 		perror("mutex unlock:");
 		exit(-1);
 	}

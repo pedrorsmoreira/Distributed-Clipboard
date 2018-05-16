@@ -2,6 +2,8 @@
 #define INET 1
 #define DOWN 0
 #define UP 1
+#define WRITE 0
+#define LIST 1
 
 #include <sys/types.h>
 

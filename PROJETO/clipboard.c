@@ -48,7 +48,7 @@ int main(int argc, char **argv){
 	}
 
 	//initializes the mutex 
-	init_mutex(); 
+	init_mutex(WRITE); 
 
 //LAUNCH CLIPBOARDS AND APPS SERVERS
 	//launch the server to handle local(unix) apps connections
@@ -87,9 +87,9 @@ int main(int argc, char **argv){
 	}
 
 	//recieve updates from the clipboard "server"
-	client_handle(server_fd_recv, UP);
+	connection_handle(server_fd_recv, UP);
 	server_fd_recv = redundant_server();
-	client_handle(server_fd_recv, UP);
+	connection_handle(server_fd_recv, UP);
  
  eixt (-1);
 }
