@@ -14,11 +14,11 @@
 
 #include "clipboard.h"
 #include "regions.h"
+#include "threads.h"
 
 int server_fd_send;
 REG regions[REGIONS_NR];
 pthread_mutex_t mutex_writeUP;
-pthread_mutex_t mutex_list;
 
 down_list *add_down_list(down_list *head, int client_fd_send){
 	down_list *new_head = (down_list*) malloc (sizeof(down_list));
@@ -45,15 +45,8 @@ down_list *remove_down_list(down_list *head, int client_fd_send){
  return head_ret;
 }
 
-void init_mutex(int param){
-	pthread_mutex_t mutex;
-	
-	if (param == WRITE)
-		mutex = mutex_writeUP;
-	else if (param == LIST)
-		mutex = mutex_list;
-
-	if(pthread_mutex_init(&mutex, NULL) != 0){	
+void init_mutex(){
+	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0){	
 		perror("mutex init: ");
 		exit(-1); 
 	}
@@ -69,28 +62,42 @@ int redundant_server(){
 
 int connected_clipboard_init(char *IP, char *port_){
 	int port = atoi(port_);
-	int sock_fd[2];
+	int server_fd_receive;
 	
-	//set te connection paremeters
+	//set the connection paremeters
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(port);
 	inet_aton(IP, &server_addr.sin_addr);
 	
-	//create endpoints for the clipboard "server" to send(0) and recv(1)
-	for (int i = 0; i < 2; i ++){
-		if ((sock_fd[i] = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-			perror("socket: ");
-			exit(-1);
-		}
-		if(connect(sock_fd[i], (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-		printf("Error connecting!!!\n");
+	//create the endpoint to connect
+	if ((server_fd_receive = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+		perror("socket: ");
 		exit(-1);
-		}
 	}
- 
- server_fd_send = sock_fd[0];
- return sock_fd[1];
+
+	//connect with clipboard "server" to send up
+	if(connect(server_fd_receive, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+	printf("Error connecting!!!\n");
+	exit(-1);
+	}
+
+	//receive the second endpoint the to connect
+	if ( read(server_fd_receive, &port, sizeof(client_socket)) < 0){
+		perror("write: ");
+		exit(-1);
+	}
+	server_addr.sin_port = htons(port);
+	//connect with clipboard "server" to receive updates
+	if(connect(server_fd_send, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+	printf("Error connecting!!!\n");
+	exit(-1);
+	}
+
+	//upload regions from the clipboard "server"
+	regions_init(server_fd_receive);
+
+ return server_fd_receive;
 }
 
 /**
@@ -123,7 +130,7 @@ void regions_init(int fd){
 	}    struct with message info
  * @param[in]  data_size  message size in bytes
  */
-void update_region( down_list *head, int fd, Smessage data, int data_size){
+void update_region( down_list **head, int fd, Smessage data, int data_size){
 	if ( regions[data.region].message != NULL)
 		free(regions[data.region].message);
 
@@ -143,26 +150,18 @@ void update_region( down_list *head, int fd, Smessage data, int data_size){
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
 
-	//lock the mutex 
-	if (pthread_mutex_lock(&mutex_writeUP)!=0){
-		perror("mutex lock:");
-		exit(-1);
-	}
-	while(head != NULL){
-		if (write(head->fd, &data, data_size) < 0){
-			perror("write: ");
-			exit(-1);
+	//update clipboard "clients"
+	down_list *aux = *head;
+	down_list *aux_next;
+	while(aux != NULL){
+		aux_next = aux->next;
+		if (write(aux->fd, &data, data_size) < 0){
+			*head = remove_down_list(*head, aux->fd);
 		}
-		if ( write(head->fd, regions[data.region].message, data.message_size) < 0){
-			perror("write: ");
-			exit(-1);
+		else if ( write(aux->fd, regions[data.region].message, data.message_size) < 0){
+			*head = remove_down_list(*head, aux->fd);
 		}
-	 head = head->next;
-	}
-	//unlock the mutex 
-	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
-		perror("mutex unlock:");
-		exit(-1);
+	 aux = aux_next;
 	}
 }
 
