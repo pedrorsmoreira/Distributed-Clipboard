@@ -77,7 +77,7 @@ int connected_clipboard_init(char *IP, char *port_){
 	server_addr.sin_port = htons(port);
 	inet_aton(IP, &server_addr.sin_addr);
 	
-	//connect with clipboard "server" to send(0) and recv(1)
+	//create endpoints for the clipboard "server" to send(0) and recv(1)
 	for (int i = 0; i < 2; i ++){
 		if ((sock_fd[i] = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 			perror("socket: ");
@@ -116,7 +116,11 @@ void regions_init(int fd){
  * @brief      updates a clipboard region
  *
  * @param[in]  fd         file descriptor to recieve the message
- * @param[in]  data       struct with message info
+ * @param[in]  data   //handle remote clipboards (one thread per clipboard) (recv)
+	if (pthread_create(&thread_id_in, NULL, accept_clients, &CS_in) != 0){
+		perror("pthread_create: ");
+		exit(-1);
+	}    struct with message info
  * @param[in]  data_size  message size in bytes
  */
 void update_region( down_list *head, int fd, Smessage data, int data_size){
@@ -163,7 +167,11 @@ void update_region( down_list *head, int fd, Smessage data, int data_size){
 }
 
 void send_up_region(int fd, Smessage data, int data_size){
-	void *buf = NULL;
+	void *buf = (void *) malloc(data.message_size);
+	if ( buf == NULL){
+		printf ("malloc failure\n");
+		exit (-1);
+	}
 
 	//read the message
 	if ( read(fd, buf, data.message_size) < 0){
@@ -196,7 +204,7 @@ void send_up_region(int fd, Smessage data, int data_size){
 		perror("mutex unlock:");
 		exit(-1);
 	}
-
+ free(buf);
 }
 
 /**
@@ -206,7 +214,7 @@ void send_up_region(int fd, Smessage data, int data_size){
  * @param[in]  data       struct with the message info
  * @param[in]  data_size  message size in bytes
  */
-void send_region(int fd, Smessage data, int data_size){printf("a\n");
+void send_region(int fd, Smessage data, int data_size){
 	//check if there's anything to paste
 	if (regions[data.region].message == NULL){
 		printf("nothing to paste in region %d \n", data.region);
@@ -214,16 +222,16 @@ void send_region(int fd, Smessage data, int data_size){printf("a\n");
 	}
 	else
 		data.message_size = regions[data.region].size;
-	printf("a\n");
+	
 	//send the message info
 	if ( write(fd, &data, data_size) < 0){
 		perror("write: ");
 		exit(-1);
 	}
-printf("b\n");
+
 	if (data.region == -1)	
 		return;
-	printf("c\n");
+	
 	//send the message requested
 	if ( write(fd, regions[data.region].message, data.message_size) < 0){
 		perror("write: ");

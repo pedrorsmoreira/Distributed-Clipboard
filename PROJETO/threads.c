@@ -98,6 +98,9 @@ void *server_init(void * family){
  * @return     useless
  */
 void *accept_clients(void * CS_){
+	int client_fd_recv;
+	int client_fd_send;
+
 	client_socket *CS = (client_socket *) CS_;
 
 	struct sockaddr *client_addr;
@@ -114,27 +117,30 @@ void *accept_clients(void * CS_){
 	socklen_t size = sizeof(struct sockaddr);
 	
 	//stablish connections with the client
-	int client_fd_recv = accept( CS->sock_fd, client_addr, &size);
+	client_fd_recv = accept( CS->sock_fd, client_addr, &size);
 	if (client_fd_recv == -1){
 		perror("accept: ");
 		exit (-1);
 	}
-	int client_fd_send = accept( CS->sock_fd, client_addr, &size);
-	if (client_fd_send == -1){
-		perror("accept: ");
-		exit (-1);
-	}
-	
-	//lock the mutex 
-	if (pthread_mutex_lock(&mutex_list)!=0){
-		perror("mutex lock:");
-		exit(-1);
-	}
-	head = add_down_list(head, client_fd_send);
-	//unlock the mutex 
-	if (pthread_mutex_unlock(&mutex_list)!=0){
-		perror("mutex unlock:");
-		exit(-1);
+
+	if (CS->family == INET){
+		client_fd_send = accept( CS->sock_fd, client_addr, &size);
+		if (client_fd_send == -1){
+			perror("accept: ");
+			exit (-1);
+		}
+		
+		//lock the mutex 
+		if (pthread_mutex_lock(&mutex_list)!=0){
+			perror("mutex lock:");
+			exit(-1);
+		}
+		head = add_down_list(head, client_fd_send);
+		//unlock the mutex 
+		if (pthread_mutex_unlock(&mutex_list)!=0){
+			perror("mutex unlock:");
+			exit(-1);
+		}
 	}
 
 	//create new thread for next client connection
@@ -146,17 +152,19 @@ void *accept_clients(void * CS_){
 
 	connection_handle(client_fd_recv, DOWN);
 	
-	//lock the mutex 
-	if (pthread_mutex_lock(&mutex_list)!=0){
-		perror("mutex lock:");
-		exit(-1);
-	}
-	head = remove_down_list(head, client_fd_send);
-	//unlock the mutex 
-	if (pthread_mutex_unlock(&mutex_list)!=0){
-		perror("mutex unlock:");
-		exit(-1);
-	}
+	if (CS->family == INET){	
+		//lock the mutex 
+		if (pthread_mutex_lock(&mutex_list)!=0){
+			perror("mutex lock:");
+			exit(-1);
+		}
+		head = remove_down_list(head, client_fd_send);
+		//unlock the mutex 
+		if (pthread_mutex_unlock(&mutex_list)!=0){
+			perror("mutex unlock:");
+			exit(-1);
+		}
+	}	
 	
  return NULL;
 }
@@ -172,7 +180,7 @@ void connection_handle(int fd, int reference){
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( read(fd, &data, data_size) > 0){
+	while ( read(fd, &data, data_size) > 0){printf("dfghjk\n");
 		//check for valid region
 		if ( (data.region < 0) || (data.region > REGIONS_NR))	
 			exit(-2);
@@ -183,8 +191,9 @@ void connection_handle(int fd, int reference){
 			else if (reference == DOWN)
 				send_up_region(fd, data, data_size);
 		}
-		else if (data.order == PASTE)
+		else if (data.order == PASTE){
 			send_region(fd, data, data_size);
+		}
 		else exit(-2);
 	}
 }
