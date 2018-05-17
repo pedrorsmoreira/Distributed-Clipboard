@@ -1,20 +1,11 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
-#include <sys/un.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <pthread.h>
 #include <arpa/inet.h>
 
 #include "clipboard.h"
 #include "regions.h"
-#include "threads.h"
 
 int server_fd_send;
 REG regions[REGIONS_NR];

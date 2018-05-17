@@ -1,7 +1,8 @@
-#include "clipboard_imp.h"
-
 #ifndef CLIPBOARD
 #define CLIPBOARD
+
+#include "clipboard_imp.h"
+#include <sys/types.h>
 
 int clipboard_connect(char * clipboard_dir);
 int clipboard_copy(int clipboard_id, int region, void *buf, size_t count);
