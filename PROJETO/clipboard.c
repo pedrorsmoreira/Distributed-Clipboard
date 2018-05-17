@@ -10,7 +10,7 @@
 int main(int argc, char **argv){		
 	int server_fd_recv;
 	client_socket *CS_un;
-	client_socket *CS_in[2];
+	client_socket *CS_in;
 
 //INITIALIZE LOCAL CLIPBOARD
 	//connected mode init
@@ -35,7 +35,7 @@ int main(int argc, char **argv){
 	}
 
 	//initializes the mutex//////////////////////////// 
-	init_locks();
+	init_mutex();
 
 //LAUNCH CLIPBOARDS AND APPS SERVERS
 	//launch the server to handle local(unix) apps connections
@@ -45,35 +45,22 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 	//launch the servers to handle remote(inet) clipboards (recv[0] and send[1]])
-	pthread_t thread_id_in[2];
-	if (pthread_create(&thread_id_in[0], NULL, server_init, (void *) INET_RECV) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}
-	if (pthread_create(&thread_id_in[1], NULL, server_init, (void *) INET_SEND) != 0){
+	pthread_t thread_id_in;
+	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
 
 //HANDLE LOCAL APPS AND REMOTE COMMUNICATIONS
 	//handle local apps (one thread per app)
-	pthread_join(thread_id_un, (void **) &CS_un);printf("join\n");
+	pthread_join(thread_id_un, (void **) &CS_un);
 	if (pthread_create(&thread_id_un, NULL, accept_clients, CS_un) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
-	pthread_join(thread_id_in[0], (void **) &CS_in[0]);
-	pthread_join(thread_id_in[1], (void **) &CS_in[1]);
-	//put the the second port in CS_in[0] to inform the clipboard "client"
-	//where to perform the second connection
-	CS_in[0]->port = CS_in[1]->port;
+	pthread_join(thread_id_in, (void **) &CS_in);
 	//handle remote clipboards (one thread per clipboard) RECV
-	if (pthread_create(&thread_id_in[0], NULL, accept_clients, CS_in[0]) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}
-	//handle remote clipboards (one thread per clipboard) SEND
-	if (pthread_create(&thread_id_in[1], NULL, accept_clients, CS_in[1]) != 0){
+	if (pthread_create(&thread_id_in, NULL, accept_clients, CS_in) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}

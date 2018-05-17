@@ -35,7 +35,7 @@ void *server_init(void * family){
 		local_addr = (struct sockaddr *) &local_addr_un;
 		CS->sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	}
-	else{
+	else if (family == (void *) INET){
 		struct sockaddr_in local_addr_in;
 		addrlen = sizeof(local_addr_in);
 		local_addr_in.sin_family = AF_INET;
@@ -44,11 +44,7 @@ void *server_init(void * family){
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
 		local_addr = (struct sockaddr *) &local_addr_in;
 		CS->sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-		CS->port = port;
-		if (family == (void *) INET_RECV)
-			printf("port number: %d\n", port);
-		/*if (family == (void *) INET_SEND)
-			printf("port number2: %d\n", port);*/
+		printf("port number: %d\n", port);
 	}
 
 	//check endpoint creation faliure
@@ -82,23 +78,20 @@ void *server_init(void * family){
  * @return     useless
  */
 void *accept_clients(void * CS_){
+	client_socket *CS = (client_socket *) CS_;
 	int client_fd;
 
-	client_socket *CS = (client_socket *) CS_;
-
 	struct sockaddr *client_addr;
-	
+	socklen_t size = sizeof(struct sockaddr);
 	if (CS->family == UNIX){
 		struct sockaddr_un client_addr_un;
 		client_addr = (struct sockaddr *) &client_addr_un;
 	}
-	else{
+	else if (CS->family == INET){
 		struct sockaddr_in client_addr_in;
 		client_addr = (struct sockaddr *) &client_addr_in;
 	}
 	
-	socklen_t size = sizeof(struct sockaddr);
-
 	//stablish connections with the client
 	client_fd = accept( CS->sock_fd, client_addr, &size);
 	if (client_fd == -1){
@@ -106,13 +99,7 @@ void *accept_clients(void * CS_){
 		exit (-1);
 	}
 
-	if (CS->family == INET_RECV){
-		if ( write(client_fd, &(CS->port), sizeof(int)) < 0){
-		perror("write: ");
-		exit(-1);
-		}
-	}
-	else if (CS->family == INET_SEND)
+	if (CS->family == INET)
 		head = add_down_list(head, client_fd);
 
 	//create new thread for next client connection
@@ -122,8 +109,7 @@ void *accept_clients(void * CS_){
 		exit(-1);
 	}
 
-	if (CS->family == UNIX || CS->family == INET_RECV)
-		connection_handle(client_fd, DOWN);
+	connection_handle(client_fd, DOWN);
 	
  return NULL;
 }

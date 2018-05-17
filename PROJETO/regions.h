@@ -11,7 +11,7 @@ typedef struct REG{
 	void *message;
 }REG;
 
-void init_locks(); 
+void init_mutex(); 
 int redundant_server(); 
 int connected_clipboard_init(char *IP, char *port_); 
 void regions_init(int fd);

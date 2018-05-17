@@ -2,8 +2,7 @@
 #define THREADS
 
 #define UNIX 0
-#define INET_RECV 1
-#define INET_SEND 2
+#define INET 1
 #define DOWN 0
 #define UP 1
 
