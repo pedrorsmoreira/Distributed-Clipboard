@@ -19,9 +19,6 @@ down_list *head = NULL;
  * @return     socket file descriptor 
  */
 void *server_init(void * family){
-	//assures there was no previous socket with the same name
-	unlink(SOCK_ADDRESS);
-
 	struct sockaddr *local_addr;
 	socklen_t addrlen;
 
@@ -30,6 +27,7 @@ void *server_init(void * family){
 
 	//set the communication type parameters 
 	if (family == (void *) UNIX){
+		unlink(SOCK_ADDRESS);
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
 		local_addr_un.sun_family = AF_UNIX;
@@ -100,7 +98,7 @@ void *accept_clients(void * CS_){
 	}
 	
 	socklen_t size = sizeof(struct sockaddr);
-	
+
 	//stablish connections with the client
 	client_fd = accept( CS->sock_fd, client_addr, &size);
 	if (client_fd == -1){

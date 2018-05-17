@@ -57,7 +57,7 @@ int main(int argc, char **argv){
 
 //HANDLE LOCAL APPS AND REMOTE COMMUNICATIONS
 	//handle local apps (one thread per app)
-	pthread_join(thread_id_un, (void **) &CS_un);
+	pthread_join(thread_id_un, (void **) &CS_un);printf("join\n");
 	if (pthread_create(&thread_id_un, NULL, accept_clients, CS_un) != 0){
 		perror("pthread_create: ");
 		exit(-1);
