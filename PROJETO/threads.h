@@ -12,11 +12,9 @@
 typedef struct client_socket{
 	int sock_fd;
 	int family;
-	char *IP;
 	int port;
 }client_socket;
 
-int rand_port_gen();
 void *server_init(void * family);
 void *accept_clients(void * CS);
 void connection_handle(int fd, int reference);
