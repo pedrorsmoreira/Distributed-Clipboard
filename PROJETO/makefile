@@ -5,10 +5,10 @@ default: allin
 allin: app clipboard
 
 app: app_teste.c library.c
-	gcc app_teste.c library.c -o app $(CFLAGS)
+	gcc app_teste.c library.c -g -o app $(CFLAGS)
 
 clipboard: clipboard.c library.c
-	gcc clipboard.c library.c threads.c regions.c -pthread -o clipboard $(CFLAGS)
+	gcc clipboard.c library.c threads.c regions.c -pthread -g -o clipboard $(CFLAGS)
 
 clean:
 	rm -f *.o app clipboard

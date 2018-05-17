@@ -24,7 +24,7 @@ down_list *head = NULL;
  * @return     The random number
  */
 int rand_port_gen(){
-	srand(time(NULL));
+	srand(pthread_self());
 	int ret = 1024 + rand()%63715;
 	return ret;
 }
@@ -44,7 +44,7 @@ void *server_init(void * family){
 	socklen_t addrlen;
 
 	client_socket *CS = (client_socket *) malloc(sizeof(client_socket));
-	CS->family = *((int *) family);
+	CS->family = family;
 
 	//set the communication type parameters 
 	if (family == (void *) UNIX){
@@ -68,6 +68,8 @@ void *server_init(void * family){
 		CS->port = port;
 		if (family == (void *) INET_RECV)
 			printf("port number: %d\n", port);
+		/*if (family == (void *) INET_SEND)
+			printf("port number2: %d\n", port);*/
 	}
 
 	//check endpoint creation faliure
@@ -141,7 +143,7 @@ void *accept_clients(void * CS_){
 		exit(-1);
 	}
 
-	if (CS->family == INET_RECV)
+	if (CS->family == UNIX || CS->family == INET_RECV)
 		connection_handle(client_fd, DOWN);
 	
  return NULL;
@@ -158,10 +160,12 @@ void connection_handle(int fd, int reference){
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( read(fd, &data, data_size) > 0){printf("dfghjk\n");
+	while ( read(fd, &data, data_size) > 0){
 		//check for valid region
-		if ( (data.region < 0) || (data.region > REGIONS_NR))	
+		if ( (data.region < 0) || (data.region > REGIONS_NR)){
+			printf("received wrong region in connection_handle\n");
 			exit(-2);
+		}
 		//copy or paste
 		if (data.order == COPY){
 			if (reference == UP)
@@ -169,9 +173,7 @@ void connection_handle(int fd, int reference){
 			else if (reference == DOWN)
 				send_up_region(fd, data, data_size);
 		}
-		else if (data.order == PASTE){
+		else if (data.order == PASTE)
 			send_region(fd, data, data_size);
-		}
-		else exit(-2);
 	}
 }

@@ -74,7 +74,7 @@ int main(int argc, char **argv){
 	}
 	pthread_join(thread_id_in[0], (void **) &CS_in[0]);
 	pthread_join(thread_id_in[1], (void **) &CS_in[1]);
-	//puto the the second port in CS_in[0] to inform the clipboard "client"
+	//put the the second port in CS_in[0] to inform the clipboard "client"
 	//where to perform the second connection
 	CS_in[0]->port = CS_in[1]->port;
 	//handle remote clipboards (one thread per clipboard) RECV
@@ -83,16 +83,15 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 	//handle remote clipboards (one thread per clipboard) SEND
-	
 	if (pthread_create(&thread_id_in[1], NULL, accept_clients, CS_in[1]) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
-printf("3\n");
+
 	//recieve updates from the clipboard "server"
 	connection_handle(server_fd_recv, UP);
 	server_fd_recv = redundant_server();
 	connection_handle(server_fd_recv, UP);
- 
+	
  exit (-1);
 }

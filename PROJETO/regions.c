@@ -54,7 +54,10 @@ void init_mutex(){
 
 int redundant_server(){
 	int fd[2];
-	pipe(fd);
+	if (pipe(fd)< 0){
+		perror("pipe: ");
+		exit(-1);
+	}
 	server_fd_send = fd[1];
  
  return fd[0];
@@ -70,32 +73,36 @@ int connected_clipboard_init(char *IP, char *port_){
 	server_addr.sin_port = htons(port);
 	inet_aton(IP, &server_addr.sin_addr);
 	
-	//create the endpoint to connect
+	//create the endpoints to connect
 	if ((server_fd_receive = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+		perror("socket: ");
+		exit(-1);
+	}
+	if ((server_fd_send = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 		perror("socket: ");
 		exit(-1);
 	}
 
 	//connect with clipboard "server" to send up
-	if(connect(server_fd_receive, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-	printf("Error connecting!!!\n");
+	if(connect(server_fd_send, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+	printf("Error connecting1!!!\n");
 	exit(-1);
 	}
 
 	//receive the second endpoint the to connect
-	if ( read(server_fd_receive, &port, sizeof(client_socket)) < 0){
+	if ( read(server_fd_send, &port, sizeof(int)) < 0){
 		perror("write: ");
 		exit(-1);
 	}
 	server_addr.sin_port = htons(port);
 	//connect with clipboard "server" to receive updates
-	if(connect(server_fd_send, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-	printf("Error connecting!!!\n");
+	if(connect(server_fd_receive, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
+	printf("Error connecting2!!!\n");
 	exit(-1);
 	}
 
 	//upload regions from the clipboard "server"
-	regions_init(server_fd_receive);
+	regions_init(server_fd_send);
 
  return server_fd_receive;
 }
@@ -155,10 +162,10 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 	down_list *aux_next;
 	while(aux != NULL){
 		aux_next = aux->next;
-		if (write(aux->fd, &data, data_size) < 0){
+		if (write(aux->fd, &data, data_size) < 0){printf("remv list1\n");
 			*head = remove_down_list(*head, aux->fd);
 		}
-		else if ( write(aux->fd, regions[data.region].message, data.message_size) < 0){
+		else if ( write(aux->fd, regions[data.region].message, data.message_size) < 0){printf("remv list2\n");
 			*head = remove_down_list(*head, aux->fd);
 		}
 	 aux = aux_next;
@@ -237,5 +244,5 @@ void send_region(int fd, Smessage data, int data_size){
 		exit(-1);
 	}
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
-	printf("pasted %s to region %d\n", (char *) regions[data.region].message, data.region);
+	printf("pasted %s from region %d\n", (char *) regions[data.region].message, data.region);
 }

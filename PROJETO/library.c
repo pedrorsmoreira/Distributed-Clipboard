@@ -135,7 +135,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		perror("read: ");
 		exit(-1);
 	}
-printf("aaaaaa\n");
+
  return data.message_size;
 }
 
