@@ -13,7 +13,7 @@
 
 #include "clipboard.h"
 #include "threads.h"
-//#include "regions.h"
+#include "regions.h"
 #include "utils.h"
 
 down_list *head = NULL;

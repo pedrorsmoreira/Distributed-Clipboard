@@ -15,7 +15,6 @@
 #include "clipboard.h"
 #include "regions.h"
 #include "threads.h"
-#include "utils.h"
 
 int server_fd_send;
 REG regions[REGIONS_NR];

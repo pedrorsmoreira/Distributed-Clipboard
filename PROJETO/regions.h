@@ -4,16 +4,12 @@
 #define WRITE 0
 #define LIST 1
 
+#include "utils.h"
+
 typedef struct REG{
 	size_t size;
 	void *message;
 }REG;
-
-typedef struct down_list_{
-	int fd; 
-	struct down_list_ *next;
-}down_list; 
-
 
 void init_mutex(); 
 int redundant_server(); 
