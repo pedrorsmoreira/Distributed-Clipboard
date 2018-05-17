@@ -13,21 +13,10 @@
 
 #include "clipboard.h"
 #include "threads.h"
-#include "regions.h"
+//#include "regions.h"
+#include "utils.h"
 
 down_list *head = NULL;
-
-/**
- * @brief      Generates a random number in a valid
- *             range for a computer port connection
- *
- * @return     The random number
- */
-int rand_port_gen(){
-	srand(pthread_self());
-	int ret = 1024 + rand()%63715;
-	return ret;
-}
 
 /**
  * @brief      Initializes a socket stream server
@@ -64,7 +53,6 @@ void *server_init(void * family){
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
 		local_addr = (struct sockaddr *) &local_addr_in;
 		CS->sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-		CS->IP = "127.0.0.1";
 		CS->port = port;
 		if (family == (void *) INET_RECV)
 			printf("port number: %d\n", port);

@@ -15,35 +15,11 @@
 #include "clipboard.h"
 #include "regions.h"
 #include "threads.h"
+#include "utils.h"
 
 int server_fd_send;
 REG regions[REGIONS_NR];
 pthread_mutex_t mutex_writeUP;
-
-down_list *add_down_list(down_list *head, int client_fd_send){
-	down_list *new_head = (down_list*) malloc (sizeof(down_list));
-	new_head->fd = client_fd_send;
-	new_head->next = head;
-	return new_head;
-}
-
-down_list *remove_down_list(down_list *head, int client_fd_send){
-	if (head->fd == client_fd_send){
-		down_list *next = head->next;
-		free(head);
-		return next;
-	}
-
-	down_list *head_ret = head;
-	while (head->next->fd != client_fd_send)
-		head = head->next;
-
-	down_list * aux = head->next->next; 
-	free(head->next);
-	head->next=aux;
-
- return head_ret;
-}
 
 void init_mutex(){
 	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0){	

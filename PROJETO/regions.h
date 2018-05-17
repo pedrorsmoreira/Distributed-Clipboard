@@ -15,8 +15,6 @@ typedef struct down_list_{
 }down_list; 
 
 
-down_list *add_down_list(down_list *head, int client_fd_send);
-down_list *remove_down_list(down_list *head, int client_fd_send); 
 void init_mutex(); 
 int redundant_server(); 
 int connected_clipboard_init(char *IP, char *port_); 
