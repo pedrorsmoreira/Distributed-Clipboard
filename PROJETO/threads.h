@@ -1,13 +1,11 @@
+#ifndef THREADS
+#define THREADS
+
 #define UNIX 0
 #define INET_RECV 1
 #define INET_SEND 2
 #define DOWN 0
 #define UP 1
-
-#include <sys/types.h>
-
-#ifndef THREADS
-#define THREADS
 
 typedef struct client_socket{
 	int sock_fd;

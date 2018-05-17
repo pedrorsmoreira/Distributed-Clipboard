@@ -1,21 +1,11 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/un.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <pthread.h>
-#include <arpa/inet.h>
 
 #include "clipboard.h"
 #include "threads.h"
 #include "regions.h"
-
 
 int main(int argc, char **argv){		
 	int server_fd_recv;

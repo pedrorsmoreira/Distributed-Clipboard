@@ -1,20 +1,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <string.h>
 #include <pthread.h>
 #include <sys/un.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <arpa/inet.h>
 
 #include "clipboard.h"
 #include "threads.h"
 #include "regions.h"
-#include "utils.h"
 
 down_list *head = NULL;
 

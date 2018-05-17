@@ -1,13 +1,11 @@
-#include "clipboard.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <sys/un.h>
 #include <sys/socket.h>
+
+#include "clipboard.h"
 
 /**
  * @brief      creates the connection with the local clipboard
