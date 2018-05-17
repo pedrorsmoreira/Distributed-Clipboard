@@ -45,7 +45,7 @@ int main(int argc, char **argv){
 	}
 
 	//initializes the mutex//////////////////////////// 
-	init_mutex();
+	init_locks();
 
 //LAUNCH CLIPBOARDS AND APPS SERVERS
 	//launch the server to handle local(unix) apps connections
