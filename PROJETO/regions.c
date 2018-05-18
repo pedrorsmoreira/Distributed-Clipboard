@@ -70,7 +70,7 @@ void regions_init(int fd){
 	}
 	else{
 		for (i = 0; i <REGIONS_NR; i++)
-			regions[i].size = clipboard_paste(fd, i, regions[i].message, -1);
+			regions[i].size = clipboard_paste(fd, i, regions[i].message, 0);
 	}
 }
 

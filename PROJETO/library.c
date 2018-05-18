@@ -116,7 +116,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//buffer is not allocated
-	if (count < 0 ){
+	if (count == 0 ){
 		buf  = (void *) malloc(data.message_size);
 		if ( buf == NULL){
 			printf ("malloc failure\n");
