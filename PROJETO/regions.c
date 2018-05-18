@@ -10,11 +10,18 @@
 int server_fd_send;
 REG regions[REGIONS_NR];
 pthread_mutex_t mutex_writeUP;
+pthread_rwlock_t lock_rw[10];
 
-void init_mutex(){
+void init_locks(){
 	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0){	
 		perror("mutex init: ");
 		exit(-1); 
+	}
+	for (int i = 0; i < REGIONS_NR; i ++){
+		if(pthread_rwlock_init(&lock_rw[i], NULL) != 0){	
+			perror("lock_rw init: ");
+			exit(-1); 
+		}
 	}
 }
 
@@ -86,6 +93,7 @@ void regions_init(int fd){
  * @param[in]  data_size  message size in bytes
  */
 void update_region( down_list **head, int fd, Smessage data, int data_size){
+	pthread_rwlock_wrlock(&lock_rw[data.region]);
 	if ( regions[data.region].message != NULL)
 		free(regions[data.region].message);
 
@@ -101,7 +109,8 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 		perror("read: ");
 		exit(-1);
 	}
-	
+	pthread_rwlock_unlock(&lock_rw[data.region]);
+
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
 
@@ -169,6 +178,7 @@ void send_up_region(int fd, Smessage data, int data_size){
  * @param[in]  data_size  message size in bytes
  */
 void send_region(int fd, Smessage data, int data_size){
+	pthread_rwlock_rdlock(&lock_rw[data.region]);
 	//check if there's anything to paste
 	if (regions[data.region].message == NULL){
 		printf("nothing to paste in region %d \n", data.region);
@@ -191,6 +201,8 @@ void send_region(int fd, Smessage data, int data_size){
 		perror("write: ");
 		exit(-1);
 	}
+	pthread_rwlock_unlock(&lock_rw[data.region]);
+	
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("pasted %s from region %d\n", (char *) regions[data.region].message, data.region);
 }
