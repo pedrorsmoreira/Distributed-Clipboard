@@ -38,7 +38,7 @@ int main(){
 			//read the action from stdin and perform it
 			while (1){
 			char order;
-				printf("(Enter [Q] to quit) \nIntroduce the action, copy [C] or paste [P]:");
+				printf("(Enter [Q] to quit) \nIntroduce the action, copy [C], paste [P] or wait [W]:");
 				if (fgets(aux, sizeof(aux), stdin) == NULL){
 					perror("fgets: ");
 					exit(-1);
@@ -49,7 +49,7 @@ int main(){
 					clipboard_close(fd);
 					return 0;
 				}
-				if ((order == 'c') || (order == 'C')){
+				else if ((order == 'c') || (order == 'C')){
 					//read the region of the action from stdin
 					region = read_region();
 					
@@ -63,13 +63,23 @@ int main(){
 					else	printf("%d bytes copied\n---\n", nbytes);
 					break;
 				}
-				if ((order == 'P') || (order == 'p')){
+				else if ((order == 'P') || (order == 'p')){
 					//read the region of the action from stdin
 					region = read_region();
 					
 					nbytes = clipboard_paste(fd, region, message, MESSAGE_SIZE);
 					if (nbytes == 0)	printf("paste failed\n---\n");
 					else	printf("Received %s\n (%d bytes pasted)\n---\n", message, nbytes);
+					
+					break;
+				}
+				else if ((order == 'W') || (order == 'w')){
+					//read the region of the action from stdin
+					region = read_region();
+					
+					nbytes = clipboard_wait(fd, region, message, MESSAGE_SIZE);
+					if (nbytes == 0)	printf("paste (wait) failed\n---\n");
+					else	printf("Received %s\n (%d bytes pasted (wait))\n---\n", message, nbytes);
 					
 					break;
 				}

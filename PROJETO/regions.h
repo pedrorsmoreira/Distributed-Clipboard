@@ -17,6 +17,6 @@ int connected_clipboard_init(char *IP, char *port_);
 void regions_init(int fd);
 void update_region( down_list **head, int fd, Smessage data, int data_size);
 void send_up_region(int fd, Smessage data, int data_size); 
-void send_region(int fd, Smessage data, int data_size); 
+void send_region(int fd, Smessage data, int data_size, int order); 
 
 #endif 

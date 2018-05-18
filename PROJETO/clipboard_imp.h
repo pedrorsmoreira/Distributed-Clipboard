@@ -1,6 +1,7 @@
 #define REGIONS_NR 10
 #define COPY 0
 #define PASTE 1
+#define WAIT 2
 #define SOCK_ADDRESS "./CLIPBOARD_SOCKET"
 
 typedef struct Smessage{

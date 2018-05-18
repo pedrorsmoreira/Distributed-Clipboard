@@ -127,7 +127,6 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	else if (buf == NULL)
 		return 0;
 
-
 	//read the message
 	if (read(clipboard_id, buf, data.message_size) < 0){
 		perror("read: ");
@@ -150,10 +149,51 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
  *             or returns 0 in case of error
  */
 int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
- /**
-  * NOOOOOOTTTTTT DDDEEEVVEEEELLOOOOOPPPEDDDD YYYEEEETTT
-  */
- return 0;
+	int data_size = sizeof(Smessage);
+	Smessage data;
+	data.region = region;
+	data.order = WAIT;
+
+	// check for valid region
+	if ((region < 0) || (region > REGIONS_NR) )	
+		return 0;
+
+	//send the region requested
+	if (write(clipboard_id, &data, data_size) < 0){
+		perror("write: ");
+		return 0;
+	}
+
+	//read the message specs
+	if (read(clipboard_id, &data, data_size) < 0){
+		perror("read: ");
+		return 0;
+	}
+
+	//if the region is empty or message too big
+	if (data.region == -1 || (count > 0 && data.message_size > count))	
+		return 0;
+
+	//buffer is not allocated
+	if (count == 0 ){
+		buf  = (void *) malloc(data.message_size);
+		if ( buf == NULL){
+			printf ("malloc failure\n");
+			exit (-1);
+		}
+	} 
+	//check if buffer came allocated
+	else if (buf == NULL)
+		return 0;
+
+
+	//read the message
+	if (read(clipboard_id, buf, data.message_size) < 0){
+		perror("read: ");
+		exit(-1);
+	}
+
+ return data.message_size;
 }
 
 /**

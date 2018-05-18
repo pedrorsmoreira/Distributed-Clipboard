@@ -139,6 +139,8 @@ void connection_handle(int fd, int reference){
 				send_up_region(fd, data, data_size);
 		}
 		else if (data.order == PASTE)
-			send_region(fd, data, data_size);
+			send_region(fd, data, data_size, PASTE);
+		else if (data.order == WAIT)
+			send_region(fd, data, data_size, WAIT);
 	}
 }

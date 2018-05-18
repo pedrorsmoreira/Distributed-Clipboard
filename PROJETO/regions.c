@@ -10,7 +10,10 @@
 int server_fd_send;
 REG regions[REGIONS_NR];
 pthread_mutex_t mutex_writeUP;
-pthread_rwlock_t lock_rw[10];
+pthread_rwlock_t lock_rw[REGIONS_NR];
+pthread_mutex_t wait_mutexes[REGIONS_NR];
+pthread_cond_t conditions[REGIONS_NR];
+int pend_waits[REGIONS_NR];
 
 void init_locks(){
 	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0){	
@@ -22,6 +25,15 @@ void init_locks(){
 			perror("lock_rw init: ");
 			exit(-1); 
 		}
+		if(pthread_mutex_init(&wait_mutexes[i], NULL) != 0){	
+			perror("lock_rw init: ");
+			exit(-1); 
+		}
+		if(pthread_cond_init(&conditions[i], NULL) != 0){	
+			perror("lock_rw init: ");
+			exit(-1); 
+		}
+		pend_waits[i] = 0;
 	}
 }
 
@@ -110,6 +122,10 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 		exit(-1);
 	}
 	pthread_rwlock_unlock(&lock_rw[data.region]);
+	if (pend_waits[data.region] != 0){
+		pthread_cond_broadcast(&(conditions[data.region]));
+		pend_waits[data.region] = 0;
+	}
 
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
@@ -177,7 +193,16 @@ void send_up_region(int fd, Smessage data, int data_size){
  * @param[in]  data       struct with the message info
  * @param[in]  data_size  message size in bytes
  */
-void send_region(int fd, Smessage data, int data_size){
+void send_region(int fd, Smessage data, int data_size, int order){
+	if (order == WAIT)	{printf("is it?\n");
+		pthread_mutex_lock(&(wait_mutexes[data.region]));
+		pend_waits[data.region]++;
+		while( pend_waits[data.region] != 0)
+			pthread_cond_wait( &(conditions[data.region]), &(wait_mutexes[data.region]));
+		pthread_mutex_unlock( &(wait_mutexes[data.region]));
+		pthread_rwlock_rdlock(&lock_rw[data.region]);printf("it is!\n");
+	}
+
 	pthread_rwlock_rdlock(&lock_rw[data.region]);
 	//check if there's anything to paste
 	if (regions[data.region].message == NULL){
@@ -202,7 +227,7 @@ void send_region(int fd, Smessage data, int data_size){
 		exit(-1);
 	}
 	pthread_rwlock_unlock(&lock_rw[data.region]);
-	
+
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("pasted %s from region %d\n", (char *) regions[data.region].message, data.region);
 }
