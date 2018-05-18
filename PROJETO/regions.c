@@ -64,7 +64,7 @@ int connected_clipboard_init(char *IP, char *port_){
 
 	//connect with clipboard "server" to send up
 	if(connect(server_fd_send, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-	printf("Error connecting1!!!\n");
+	printf("Error connecting with the server!!!\n");
 	exit(-1);
 	}
 
@@ -194,19 +194,26 @@ void send_up_region(int fd, Smessage data, int data_size){
  * @param[in]  data_size  message size in bytes
  */
 void send_region(int fd, Smessage data, int data_size, int order){
-	if (order == WAIT)	{printf("is it?\n");
+	if (order == WAIT)	{
 		pthread_mutex_lock(&(wait_mutexes[data.region]));
 		pend_waits[data.region]++;
 		while( pend_waits[data.region] != 0)
 			pthread_cond_wait( &(conditions[data.region]), &(wait_mutexes[data.region]));
 		pthread_mutex_unlock( &(wait_mutexes[data.region]));
-		pthread_rwlock_rdlock(&lock_rw[data.region]);printf("it is!\n");
+		pthread_rwlock_rdlock(&lock_rw[data.region]);
 	}
 
-	pthread_rwlock_rdlock(&lock_rw[data.region]);
+	if (pthread_rwlock_rdlock(&lock_rw[data.region]) != 0){
+		printf("falhou o rdlock\n");
+		exit(-1);
+	} 
 	//check if there's anything to paste
 	if (regions[data.region].message == NULL){
 		printf("nothing to paste in region %d \n", data.region);
+		if (pthread_rwlock_unlock(&lock_rw[data.region]) != 0){	
+			printf("rd unlock deu merda 1\n");
+			exit(-1);
+		}
 		data.region = -1;
 	}
 	else
@@ -218,15 +225,19 @@ void send_region(int fd, Smessage data, int data_size, int order){
 		exit(-1);
 	}
 
-	if (data.region == -1)	
+	if (data.region == -1)
 		return;
-	
+
 	//send the message requested
 	if ( write(fd, regions[data.region].message, data.message_size) < 0){
 		perror("write: ");
 		exit(-1);
 	}
-	pthread_rwlock_unlock(&lock_rw[data.region]);
+
+	if (pthread_rwlock_unlock(&lock_rw[data.region]) != 0){
+		printf("rd unlock deu merda 2\n");
+		exit(-1);
+	}
 
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
 	printf("pasted %s from region %d\n", (char *) regions[data.region].message, data.region);

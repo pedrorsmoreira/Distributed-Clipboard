@@ -12,6 +12,8 @@ int main(int argc, char **argv){
 	client_socket *CS_un;
 	client_socket *CS_in;
 
+init_locks();
+
 //INITIALIZE LOCAL CLIPBOARD
 	//connected mode init
 	if (argc == 4){
@@ -33,9 +35,6 @@ int main(int argc, char **argv){
 		printf("invalid number of arguments\n");
 		exit(-2);
 	}
-
-	//initializes the mutex//////////////////////////// 
-	init_locks();
 
 //LAUNCH CLIPBOARDS AND APPS SERVERS
 	//launch the server to handle local(unix) apps connections
