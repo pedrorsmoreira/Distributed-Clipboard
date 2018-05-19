@@ -2,77 +2,18 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <arpa/inet.h>
 
 #include "clipboard.h"
 #include "regions.h"
 
-int server_fd_send;
 REG regions[REGIONS_NR];
+
+int server_fd;
 pthread_mutex_t mutex_writeUP;
-pthread_rwlock_t lock_rw[REGIONS_NR];
+pthread_rwlock_t regions_lock_rw[REGIONS_NR];
 pthread_mutex_t wait_mutexes[REGIONS_NR];
-pthread_cond_t conditions[REGIONS_NR];
+pthread_cond_t wait_conditions[REGIONS_NR];
 int pend_waits[REGIONS_NR];
-
-void init_locks(){
-	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0){	
-		perror("mutex init: ");
-		exit(-1); 
-	}
-	for (int i = 0; i < REGIONS_NR; i ++){
-		if(pthread_rwlock_init(&lock_rw[i], NULL) != 0){	
-			perror("lock_rw init: ");
-			exit(-1); 
-		}
-		if(pthread_mutex_init(&wait_mutexes[i], NULL) != 0){	
-			perror("lock_rw init: ");
-			exit(-1); 
-		}
-		if(pthread_cond_init(&conditions[i], NULL) != 0){	
-			perror("lock_rw init: ");
-			exit(-1); 
-		}
-		pend_waits[i] = 0;
-	}
-}
-
-int redundant_server(){
-	int fd[2];
-	if (pipe(fd)< 0){
-		perror("pipe: ");
-		exit(-1);
-	}
-	server_fd_send = fd[1];
- 
- return fd[0];
-}
-
-int connected_clipboard_init(char *IP, char *port_){
-	//set the connection paremeters
-	struct sockaddr_in server_addr;
-	server_addr.sin_family = AF_INET;
-	int port = atoi(port_);
-	server_addr.sin_port = htons(port);
-	inet_aton(IP, &server_addr.sin_addr);
-	
-	//create the endpoint to connect
-	if ((server_fd_send = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-		perror("socket: ");
-		exit(-1);
-	}
-
-	//connect with clipboard "server" to send up
-	if(connect(server_fd_send, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-	printf("Error connecting with the server!!!\n");
-	exit(-1);
-	}
-
-	//upload regions from the clipboard "server"
-	regions_init(server_fd_send);
-
- return server_fd_send;
-}
 
 /**
  * @brief      initializes the local clipboard regions
@@ -84,11 +25,11 @@ int connected_clipboard_init(char *IP, char *port_){
 void regions_init(int fd){
 	int i;
 	if (fd < 0){
-		for (i = 0; i <REGIONS_NR; i++)
+		for (i = 0; i < REGIONS_NR; i++)
 			regions[i].message = NULL;
 	}
 	else{
-		for (i = 0; i <REGIONS_NR; i++)
+		for (i = 0; i < REGIONS_NR; i++)
 			regions[i].size = clipboard_paste(fd, i, regions[i].message, 0);
 	}
 }
@@ -96,19 +37,22 @@ void regions_init(int fd){
 /**
  * @brief      updates a clipboard region
  *
- * @param[in]  fd         file descriptor to recieve the message
- * @param[in]  data   //handle remote clipboards (one thread per clipboard) (recv)
-	if (pthread_create(&thread_id_in, NULL, accept_clients, &CS_in) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}    struct with message info
- * @param[in]  data_size  message size in bytes
+ * @param      head       passed by reference pointer to the 
+ * 						  list of clipboard "clients"
+ * @param[in]  fd         file descriptor to get the message from
+ * @param[in]  data       structure with mesaage info
+ * @param[in]  data_size  size of data (bytes)
  */
 void update_region( down_list **head, int fd, Smessage data, int data_size){
-	pthread_rwlock_wrlock(&lock_rw[data.region]);
+	//lock the critical region access
+	if (pthread_rwlock_wrlock(&regions_lock_rw[data.region]) != 0){
+		printf("write lock faliure\n");
+		exit(-1);
+	}
+
+	//set the region to receive the new message
 	if ( regions[data.region].message != NULL)
 		free(regions[data.region].message);
-
 	regions[data.region].size = data.message_size;
 	regions[data.region].message = (void *) malloc (data.message_size);
 	if ( regions[data.region].message == NULL){
@@ -116,18 +60,28 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 		exit (-1);
 	}
 
-	//read the message and copy it
+	//read the message and copy it to its region
 	if ( read(fd, regions[data.region].message, data.message_size) < 0){
 		perror("read: ");
 		exit(-1);
 	}
-	pthread_rwlock_unlock(&lock_rw[data.region]);
+
+	//unlock the critical region access
+	if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0){
+		printf("write unlock faliure\n");
+		exit(-1);
+	}
+
+	//notice the pending waits if any
 	if (pend_waits[data.region] != 0){
-		pthread_cond_broadcast(&(conditions[data.region]));
+		if (pthread_cond_broadcast(&(wait_conditions[data.region])) != 0){
+			printf("pthread_cond_broadcast failure\n");
+			exit(-1);
+		}
 		pend_waits[data.region] = 0;
 	}
 
-	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
+	//TEMPORARY PRINT FOR TESTING - TO BE DELETED-------------------------------------------------------------
 	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
 
 	//update clipboard "clients"
@@ -145,6 +99,13 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 	}
 }
 
+/**
+ * @brief      Sends a received messsage to the clipboard "server"
+ *
+ * @param[in]  fd         endpoint for the clipboard "server"
+ * @param[in]  data       structure with the message info
+ * @param[in]  data_size  size of data (bytes)
+ */
 void send_up_region(int fd, Smessage data, int data_size){
 	void *buf = (void *) malloc(data.message_size);
 	if ( buf == NULL){
@@ -158,29 +119,27 @@ void send_up_region(int fd, Smessage data, int data_size){
 		exit(-1);
 	}
 
-	//lock the mutex 
-	if (pthread_mutex_lock(&mutex_writeUP)!=0){
-		perror("mutex lock:");
+	//lock the writes to clipboard "server"
+	if (pthread_mutex_lock(&mutex_writeUP) != 0){
+		printf("mutex writeUP lock failure\n");
 		exit(-1);
 	}
 
-	////////CRITICAL REGION 
 	//send up the message info
-	if ( write(server_fd_send, &data, data_size) < 0){
+	if ( write(server_fd, &data, data_size) < 0){
 		perror("write: ");
 		exit(-1);
 	}
 
 	//send up the message
-	if ( write(server_fd_send, buf, data.message_size) < 0){
+	if ( write(server_fd, buf, data.message_size) < 0){
 		perror("write: ");
 		exit(-1);
 	}
-	////////END OF CRITICAL REGION
 
-	//unlock the mutex 
+	//unlock the writes to clipboard "server"
 	if (pthread_mutex_unlock(&mutex_writeUP)!=0){
-		perror("mutex unlock:");
+		printf("mutex writeUP unlock failure\n");
 		exit(-1);
 	}
  free(buf);
@@ -194,24 +153,37 @@ void send_up_region(int fd, Smessage data, int data_size){
  * @param[in]  data_size  message size in bytes
  */
 void send_region(int fd, Smessage data, int data_size, int order){
+	//only leaves the if when the region is modified
 	if (order == WAIT)	{
-		pthread_mutex_lock(&(wait_mutexes[data.region]));
+		if (pthread_mutex_lock(&(wait_mutexes[data.region])) != 0){
+			printf("wait_mutex%d lock failure", data.region);
+			exit(-1);
+		}
 		pend_waits[data.region]++;
-		while( pend_waits[data.region] != 0)
-			pthread_cond_wait( &(conditions[data.region]), &(wait_mutexes[data.region]));
-		pthread_mutex_unlock( &(wait_mutexes[data.region]));
-		pthread_rwlock_rdlock(&lock_rw[data.region]);
+		while( pend_waits[data.region] != 0){
+			if (pthread_cond_wait( &(wait_conditions[data.region]), &(wait_mutexes[data.region])) != 0){
+				printf("cond_wait failure\n");
+				exit(-1);
+			}
+		}
+		if (pthread_mutex_unlock( &(wait_mutexes[data.region])) < 0){
+			printf("wait_mutex%d unlock failure", data.region);
+			exit(-1);
+		}
 	}
 
-	if (pthread_rwlock_rdlock(&lock_rw[data.region]) != 0){
-		printf("falhou o rdlock\n");
+	//lock the critical region for modifications
+	if (pthread_rwlock_rdlock(&regions_lock_rw[data.region]) != 0){
+		printf("read lock failure\n");
 		exit(-1);
-	} 
+	}
+
 	//check if there's anything to paste
 	if (regions[data.region].message == NULL){
 		printf("nothing to paste in region %d \n", data.region);
-		if (pthread_rwlock_unlock(&lock_rw[data.region]) != 0){	
-			printf("rd unlock deu merda 1\n");
+		//no message will be sent, unlock the critical region
+		if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0){	
+			printf("read unlock failure (when message = NULL)\n");
 			exit(-1);
 		}
 		data.region = -1;
@@ -225,6 +197,7 @@ void send_region(int fd, Smessage data, int data_size, int order){
 		exit(-1);
 	}
 
+	//if there was nothing to paste, leaves
 	if (data.region == -1)
 		return;
 
@@ -234,11 +207,12 @@ void send_region(int fd, Smessage data, int data_size, int order){
 		exit(-1);
 	}
 
-	if (pthread_rwlock_unlock(&lock_rw[data.region]) != 0){
-		printf("rd unlock deu merda 2\n");
+	//unlock the critical region
+	if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0){
+		printf("read unlock failure\n");
 		exit(-1);
 	}
 
-	//TEMPORARY PRINT FOR TESTING - TO BE DELETED
+	//TEMPORARY PRINT FOR TESTING - TO BE DELETED--------------------------------------------------------------
 	printf("pasted %s from region %d\n", (char *) regions[data.region].message, data.region);
 }

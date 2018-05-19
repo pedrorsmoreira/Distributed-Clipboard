@@ -6,6 +6,9 @@
 #define DOWN 0
 #define UP 1
 
+/**
+ * struct with info to accpet clients via socket-stream
+ */
 typedef struct client_socket{
 	int sock_fd;
 	int family;

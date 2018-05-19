@@ -2,6 +2,7 @@
 #define CLIPBOARD
 
 #include "clipboard_imp.h"
+
 #include <sys/types.h>
 
 int clipboard_connect(char * clipboard_dir);

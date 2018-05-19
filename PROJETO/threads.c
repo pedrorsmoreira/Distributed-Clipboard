@@ -12,11 +12,11 @@
 down_list *head = NULL;
 
 /**
- * @brief      Initializes a socket stream server
+ * @brief      Initializes a socket-stream server
  *
  * @param[in]  family	Stream type (UNIX or INET)
  *
- * @return     socket file descriptor 
+ * @return     struct with info to accpet the clients
  */
 void *server_init(void * family){
 	struct sockaddr *local_addr;
@@ -73,7 +73,8 @@ void *server_init(void * family){
  *             connection every function call and launches 
  *             the function to process the new connection
  *
- * @param[in]  CS_   pointer to stream connection parameters
+ * @param[in]  CS_   pointer to a struct with info 
+ * 					 to accpet the clients
  * 
  * @return     useless
  */
@@ -81,6 +82,7 @@ void *accept_clients(void * CS_){
 	client_socket *CS = (client_socket *) CS_;
 	int client_fd;
 
+	//set the connection parameters
 	struct sockaddr *client_addr;
 	socklen_t size = sizeof(struct sockaddr);
 	if (CS->family == UNIX){
@@ -99,6 +101,7 @@ void *accept_clients(void * CS_){
 		exit (-1);
 	}
 
+	//if clipboard "client" add it the list
 	if (CS->family == INET)
 		head = add_down_list(head, client_fd);
 
@@ -109,16 +112,17 @@ void *accept_clients(void * CS_){
 		exit(-1);
 	}
 
+	//handle the client requests
 	connection_handle(client_fd, DOWN);
 	
  return NULL;
 }
 
 /**
- * @brief      handles client requests (copy or paste)
- *             until it closes the connection	
+ * @brief      handles client requests until it closes the connection
  *
- * @param[in]  client_fd_recv  client file descriptor
+ * @param[in]  fd         connection file descriptor
+ * @param[in]  reference  server (UP) or client(DOWN)
  */
 void connection_handle(int fd, int reference){
 	Smessage data;
@@ -131,7 +135,7 @@ void connection_handle(int fd, int reference){
 			printf("received wrong region in connection_handle\n");
 			exit(-2);
 		}
-		//copy or paste
+		//process the order
 		if (data.order == COPY){
 			if (reference == UP)
 				update_region(&head, fd, data, data_size);
