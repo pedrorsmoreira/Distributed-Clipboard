@@ -90,7 +90,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
  *             or returns 0 in case of error
  */
 int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
-	int data_size = sizeof(Smessage);
+	int data_size = sizeof(Smessage);sleep(1);
 	Smessage data;
 	data.region = region;
 	data.order = PASTE;

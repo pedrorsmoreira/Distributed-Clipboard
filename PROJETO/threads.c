@@ -114,7 +114,7 @@ void *accept_clients(void * CS_){
 
 	//handle the client requests
 	connection_handle(client_fd, DOWN);
-	
+	printf("acabou connection type (inet/unix) %d\n", CS->family);
  return NULL;
 }
 
@@ -127,9 +127,9 @@ void *accept_clients(void * CS_){
 void connection_handle(int fd, int reference){
 	Smessage data;
 	int data_size = sizeof(Smessage);
-
+int i=0;
 	//listens until the connection is closed
-	while ( read(fd, &data, data_size) > 0){
+	while ( read(fd, &data, data_size) > 0){//printf("%d\n", i++);
 		//check for valid region
 		if ( (data.region < 0) || (data.region > REGIONS_NR)){
 			printf("received wrong region in connection_handle\n");
@@ -146,5 +146,5 @@ void connection_handle(int fd, int reference){
 			send_region(fd, data, data_size, PASTE);
 		else if (data.order == WAIT)
 			send_region(fd, data, data_size, WAIT);
-	}
+	}printf("acabou connection type (up/down) %d\n", reference);
 }

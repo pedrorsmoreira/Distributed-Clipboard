@@ -2,15 +2,25 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "clipboard.h"
 #include "threads.h"
 #include "regions.h"
 
+//Ctrl^C signal handler
+void terminate_ok(int a){
+	unlink(SOCK_ADDRESS);
+	exit(0);
+}
+
 int main(int argc, char **argv){		
 	int server_fd;
 	client_socket *CS_un;
 	client_socket *CS_in;
+
+	signal(SIGINT, terminate_ok);
 
 	//initialize the lock variables
 	init_locks(REGIONS_NR);

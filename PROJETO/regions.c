@@ -82,7 +82,7 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 	}
 
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED-------------------------------------------------------------
-	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
+	//printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
 
 	//update clipboard "clients"
 	down_list *aux = *head;
