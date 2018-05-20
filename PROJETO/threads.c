@@ -102,8 +102,15 @@ void *accept_clients(void * CS_){
 	}
 
 	//if clipboard "client" add it the list
-	if (CS->family == INET)
+	if (CS->family == INET){
+		Smessage data;
+		int data_size = sizeof(Smessage);
+		for (int i = 0; i < 10; data.region = ++i){
+			if (read(client_fd, &data, data_size) > 0)
+				send_region(client_fd, data, data_size, PASTE);/////VERRRR SSEEE AAQQUUUII  EEE   PPP VVEERRR VVVAALLLOOORRREEESSS DE RETORNO
+		}
 		head = add_down_list(head, client_fd);
+	}
 
 	//create new thread for next client connection
 	pthread_t thread_id;
