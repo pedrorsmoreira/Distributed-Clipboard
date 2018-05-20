@@ -8,6 +8,7 @@
 /**
  *  struct for messages needed info
  */
+
 typedef struct Smessage{
 	int region;
 	int message_size;

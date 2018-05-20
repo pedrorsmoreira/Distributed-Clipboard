@@ -51,21 +51,21 @@ int main(int argc, char **argv){
 		exit(-1);
 	}
 
-//LAUNCH THE CICLES TO PROCESS THE CONNECTIONS
-	//launch the cicle to handle local connections (apps)
+//LAUNCH THE CYCLES TO PROCESS THE CONNECTIONS
+	//launch the cycle to handle local connections (apps)
 	pthread_join(thread_id_un, (void **) &CS_un);
 	if (pthread_create(&thread_id_un, NULL, accept_clients, CS_un) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
-	//launch the cicle to handle remote connections (clipboards)
+	//launch the cycle to handle remote connections (clipboards)
 	pthread_join(thread_id_in, (void **) &CS_in);
 	if (pthread_create(&thread_id_in, NULL, accept_clients, CS_in) != 0){
 		perror("pthread_create: ");
 		exit(-1);
 	}
 
-	//recieve updates from the clipboard "server"
+	//receive updates from the clipboard "server"
 	connection_handle(server_fd, UP);
 	server_fd = redundant_server();
 	connection_handle(server_fd, UP);

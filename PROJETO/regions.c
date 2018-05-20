@@ -146,7 +146,7 @@ void send_up_region(int fd, Smessage data, int data_size){
 }
 
 /**
- * @brief      Sends a cilpboard region message
+ * @brief      Sends a clipboard region message
  *
  * @param[in]  fd         file descriptor to send the message
  * @param[in]  data       struct with the message info

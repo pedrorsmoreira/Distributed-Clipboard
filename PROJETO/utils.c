@@ -56,7 +56,7 @@ void init_locks(int regions_nr){
  * @return     endpoint to clipboard "server" connection
  */
 int connected_clipboard_init(char *IP, char *port_){
-	//set the connection paremeters
+	//set the connection parameters
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	int port = atoi(port_);

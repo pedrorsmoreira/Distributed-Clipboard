@@ -47,7 +47,7 @@ void *server_init(void * family){
 		printf("port number: %d\n", port);
 	}
 
-	//check endpoint creation faliure
+	//check endpoint creation failure
 	if (CS->sock_fd < 0){
 		perror("socket: ");
 		exit (-1);
@@ -127,9 +127,9 @@ void *accept_clients(void * CS_){
 void connection_handle(int fd, int reference){
 	Smessage data;
 	int data_size = sizeof(Smessage);
-int i=0;
+
 	//listens until the connection is closed
-	while ( read(fd, &data, data_size) > 0){//printf("%d\n", i++);
+	while ( read(fd, &data, data_size) > 0){
 		//check for valid region
 		if ( (data.region < 0) || (data.region > REGIONS_NR)){
 			printf("received wrong region in connection_handle\n");

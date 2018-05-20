@@ -29,7 +29,7 @@ int clipboard_connect(char * clipboard_dir){
 	server_addr.sun_family = AF_UNIX;
 	strcpy(server_addr.sun_path, SOCK_ADDRESS);
 
-	//connect te end-points to create the stream
+	//connect the end-points to create the stream
 	if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr)) == 0)
 		return sock_fd;
 	else
@@ -44,7 +44,7 @@ int clipboard_connect(char * clipboard_dir){
  * @param[in] buf	         Buffer which the data is pointed by
  * @param[in]  count         Number of bytes of data to be copied
  *
- * @return     retunrs the number of bytes copied
+ * @return     returns the number of bytes copied
  *             or returns 0 in case of error
  */
 int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
@@ -138,7 +138,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 
 /**
  * @brief      Waits on a certain clipboard region to change
- *             and and sends the new data
+ *             and sends the new data
  *
  * @param[in]  clipboard_id  clipboard identifier - file descriptor
  * @param[in]  region        Clipboard region to copy the data
