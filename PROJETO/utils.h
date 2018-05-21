@@ -10,7 +10,6 @@ typedef struct down_list_{
 	struct down_list_ *next;
 }down_list; 
 
-void invalid_args_exit();
 void init_locks(int regions_nr);
 int connected_clipboard_init(char *IP, char *port_); 
 int rand_port_gen(); 

@@ -10,6 +10,7 @@
 #include "regions.h"
 
 down_list *head = NULL;
+extern pthread_mutex_t mutex_init;
 
 /**
  * @brief      Initializes a socket-stream server
@@ -103,13 +104,24 @@ void *accept_clients(void * CS_){
 
 	//if clipboard "client" add it the list
 	if (CS->family == INET){
+		//lock the run of the list of clipboard "clients"
+		if (pthread_mutex_lock(&mutex_init) != 0){
+			printf("mutex writeUP lock failure\n");
+			exit(-1);
+		}
+
 		Smessage data;
 		int data_size = sizeof(Smessage);
 		for (int i = 0; i < 10; data.region = ++i){
 			if (read(client_fd, &data, data_size) > 0)
-				send_region(client_fd, data, data_size, PASTE);/////VERRRR SSEEE AAQQUUUII  EEE   PPP VVEERRR VVVAALLLOOORRREEESSS DE RETORNO
+				send_region(client_fd, data, data_size, PASTE);
 		}
 		head = add_down_list(head, client_fd);
+	
+		if (pthread_mutex_unlock(&mutex_init) != 0){
+			printf("mutex writeUP lock failure\n");
+			exit(-1);
+		}
 	}
 
 	//create new thread for next client connection

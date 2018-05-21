@@ -7,17 +7,12 @@
 #include <arpa/inet.h>
 
 extern int server_fd;
+extern pthread_mutex_t mutex_init;
 extern pthread_mutex_t mutex_writeUP;
 extern pthread_rwlock_t regions_lock_rw[];
 extern pthread_mutex_t wait_mutexes[];
 extern pthread_cond_t wait_conditions[];
 extern int pend_waits[];
-
-
-void invalid_args_exit(){
-	printf("invalid arguments\n");
-	exit(-2);
-}
 
 /**
  * @brief      initializes the variables for 
@@ -25,6 +20,10 @@ void invalid_args_exit(){
  */
 void init_locks(int regions_nr){
 	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0){	
+		perror("mutex init: ");
+		exit(-1); 
+	}
+	if(pthread_mutex_init(&mutex_init, NULL) != 0){	
 		perror("mutex init: ");
 		exit(-1); 
 	}

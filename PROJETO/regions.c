@@ -9,6 +9,7 @@
 REG regions[REGIONS_NR];
 
 int server_fd;
+pthread_mutex_t mutex_init;
 pthread_mutex_t mutex_writeUP;
 pthread_rwlock_t regions_lock_rw[REGIONS_NR];
 pthread_mutex_t wait_mutexes[REGIONS_NR];
@@ -82,8 +83,13 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 	}
 
 	//TEMPORARY PRINT FOR TESTING - TO BE DELETED-------------------------------------------------------------
-	//printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
+	printf("copied %s to region %d\n", (char *) regions[data.region].message, data.region);
 
+	//don't update while a clipboard is being initialized
+	if (pthread_mutex_lock(&mutex_init) != 0){
+		printf("mutex writeUP lock failure\n");
+		exit(-1);
+	}
 	//update clipboard "clients"
 	down_list *aux = *head;
 	down_list *aux_next;
@@ -96,6 +102,11 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 			*head = remove_down_list(*head, aux->fd);
 		}
 	 aux = aux_next;
+	}
+
+	if (pthread_mutex_unlock(&mutex_init)!=0){
+		printf("mutex writeUP unlock failure\n");
+		exit(-1);
 	}
 }
 

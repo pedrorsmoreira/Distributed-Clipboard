@@ -34,8 +34,10 @@ int main(int argc, char **argv){
 		server_fd = redundant_server();
 		regions_init(-1);
 	}
-	else
-		invalid_args_exit();
+	else{
+		printf("invalid arguments\n");
+		exit(-2);
+	}
 
 //INITIALIZE THE SERVERS
 	//initialize the server to handle local connections (apps)
