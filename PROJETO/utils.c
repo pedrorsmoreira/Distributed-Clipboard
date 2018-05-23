@@ -27,7 +27,7 @@ void init_locks(int regions_nr){
 		system_error(); 
 	
 	if(pthread_mutex_init(&mutex_init, NULL) != 0)
-		system_error()
+		system_error();
 
 	for (int i = 0; i < regions_nr; i ++){
 		if(pthread_rwlock_init(&regions_lock_rw[i], NULL) != 0)
