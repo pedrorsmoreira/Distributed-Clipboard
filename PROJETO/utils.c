@@ -13,7 +13,7 @@ extern pthread_rwlock_t regions_lock_rw[];
 extern pthread_mutex_t wait_mutexes[];
 extern pthread_cond_t wait_conditions[];
 
-void system_error(char *error){
+void system_error(){
 	perror("ERROR: ");
 	exit(-1);
 }
