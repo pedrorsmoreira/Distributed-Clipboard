@@ -97,10 +97,10 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 		down_list *aux_next;
 		while(aux != NULL){
 			aux_next = aux->next;
-			if (write(aux->fd, &data, data_size) < 0){
+			if (write(aux->fd, &data, data_size) <= 0){
 				*head = remove_down_list(*head, aux->fd);
 			}
-			else if ( write(aux->fd, regions[data.region].message, data.message_size) < 0){
+			else if ( write(aux->fd, regions[data.region].message, data.message_size) <= 0){
 				*head = remove_down_list(*head, aux->fd);
 			}
 		 aux = aux_next;

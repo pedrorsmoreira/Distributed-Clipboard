@@ -1,6 +1,9 @@
 #ifndef UTILS
 #define UTILS
 
+#define MIN_PORT 1024
+#define MAX_PORT 64738
+
 /**
  * linked list struct with the connected
  * clipboard "clients" file descriptors

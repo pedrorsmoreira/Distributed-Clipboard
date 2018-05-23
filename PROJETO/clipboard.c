@@ -65,6 +65,7 @@ int main(int argc, char **argv){
 
 	//receive updates from the clipboard "server"
 	connection_handle(server_fd, UP);
+	close (server_fd);
 	server_fd = redundant_server();
 	connection_handle(server_fd, UP);
 	

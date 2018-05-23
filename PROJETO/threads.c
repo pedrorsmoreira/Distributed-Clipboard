@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 #include "clipboard.h"
 #include "threads.h"
@@ -29,7 +30,7 @@ void *server_init(void * family){
 
 	//set the communication type parameters 
 	if (family == (void *) UNIX){
-		port = (MAX_PORT+1);
+		port = MAX_PORT + 1;
 		unlink(SOCK_ADDRESS);
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
@@ -54,7 +55,7 @@ void *server_init(void * family){
 		system_error();
 
 	while (bind(CS->sock_fd, local_addr, addrlen) < 0){
-		if (port < (MAX_PORT+1)){
+		if (port <= MAX_PORT){
 			((struct sockaddr_in*) local_addr) -> sin_port = htons(++ port);
 			continue;
 		}
@@ -99,8 +100,7 @@ void *accept_clients(void * CS_){
 	}
 	
 	//stablish connections with the client
-	client_fd = accept( CS->sock_fd, client_addr, &size);
-	if (client_fd == -1)
+	if ( (client_fd = accept( CS->sock_fd, client_addr, &size)) == -1)
 		system_error();
 
 	//if clipboard "client" add it the list
@@ -109,8 +109,9 @@ void *accept_clients(void * CS_){
 		if (pthread_mutex_lock(&mutex_init) != 0)
 			system_error();
 
-		regions_init_client(client_fd);//
+		regions_init_client(client_fd);//VEEERRRRR EEERRROOOO
 		head = add_down_list(head, client_fd);
+		
 		//unlock
 		if (pthread_mutex_unlock(&mutex_init) != 0)
 			system_error();
@@ -123,6 +124,10 @@ void *accept_clients(void * CS_){
 
 	//handle the client requests
 	connection_handle(client_fd, DOWN);
+
+	//close the socket of the finnished connection
+	if (fcntl(client_fd, F_GETFD) != -1)
+		close(client_fd);
 
 	//TEMPORARY PRINT FOR TESTING
 	printf("acabou connection type (inet/unix) %d\n", CS->family);
@@ -140,7 +145,7 @@ void connection_handle(int fd, int reference){
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( read(fd, &data, data_size) > 0){
+	while ( read(fd, &data, data_size) == data_size){printf("fez1\n");
 		//check for valid region JJJUUSSSTT FFOOORRR DDEEEBBBUUUGGG
 		if ( (data.region < 0) || (data.region > REGIONS_NR)){
 			printf("received wrong region in connection_handle\n");

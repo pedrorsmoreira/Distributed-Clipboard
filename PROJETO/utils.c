@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 
 extern int server_fd;
 extern pthread_mutex_t mutex_init;
@@ -78,7 +79,7 @@ int connected_clipboard_init(char *IP, char *port_){
  */
 int rand_port_gen(){
 	srand(pthread_self());
-	int ret = 1024 + rand()%63715;
+	int ret = MIN_PORT + rand()%(MAX_PORT - MIN_PORT + 1);
 	return ret;
 }
 
@@ -91,7 +92,7 @@ int rand_port_gen(){
  */
 int redundant_server(){
 	int fd[2];
-	if (pipe(fd)< 0)
+	if (pipe(fd) < 0)
 		system_error(); 
 	
 	server_fd = fd[1];
@@ -125,6 +126,10 @@ down_list *add_down_list(down_list *head, int client_fd){
  * @return     pointer to the head of the list
  */
 down_list *remove_down_list(down_list *head, int client_fd){
+	//close the socket of the finnished connection
+	if (fcntl(client_fd, F_GETFD) != -1)
+		close(client_fd);
+
 	down_list *head_ret = head;
 
 	if (head->fd == client_fd){
@@ -139,9 +144,6 @@ down_list *remove_down_list(down_list *head, int client_fd){
 	down_list * aux = head->next->next; 
 	free(head->next);
 	head->next=aux;
-
-	//close the socket of the finnished connection
-	close(client_fd);
 
  return head_ret;
 }
