@@ -20,6 +20,7 @@ extern pthread_mutex_t mutex_init;
  * @return     struct with info to accpet the clients
  */
 void *server_init(void * family){
+	int port;
 	struct sockaddr *local_addr;
 	socklen_t addrlen;
 
@@ -28,6 +29,7 @@ void *server_init(void * family){
 
 	//set the communication type parameters 
 	if (family == (void *) UNIX){
+		port = 63715;
 		unlink(SOCK_ADDRESS);
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
@@ -40,12 +42,11 @@ void *server_init(void * family){
 		struct sockaddr_in local_addr_in;
 		addrlen = sizeof(local_addr_in);
 		local_addr_in.sin_family = AF_INET;
-		int port = rand_port_gen();
+		port = rand_port_gen();
 		local_addr_in.sin_port = htons(port);
 		local_addr_in.sin_addr.s_addr = INADDR_ANY;
 		local_addr = (struct sockaddr *) &local_addr_in;
 		CS->sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-		printf("port number: %d\n", port);
 	}
 
 	//check endpoint creation failure
@@ -54,11 +55,17 @@ void *server_init(void * family){
 		exit (-1);
 	}
 
-	//address the socket (own it)
-	if ( bind(CS->sock_fd, local_addr, addrlen) < 0){
-		perror("bind: ");
-		exit (-1);
+	while (bind(CS->sock_fd, local_addr, addrlen) < 0){
+		if (port < 63715){
+			((struct sockaddr_in*) local_addr) -> sin_port = htons(++ port);
+			continue;
+		}
+		else
+			system_error();
 	}
+
+	if (family == (void *) INET)
+		printf("port number: %d\n", port);
 
 	//get ready to act as a server
 	if (listen (CS->sock_fd, 10) == -1){

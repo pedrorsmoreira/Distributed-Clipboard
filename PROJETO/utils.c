@@ -14,7 +14,7 @@ extern pthread_mutex_t wait_mutexes[];
 extern pthread_cond_t wait_conditions[];
 
 void system_error(char *error){
-	perror("%s : ", error);
+	perror("ERROR: ");
 	exit(-1);
 }
 
