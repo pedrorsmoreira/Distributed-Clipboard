@@ -104,20 +104,14 @@ void *accept_clients(void * CS_){
 
 	//if clipboard "client" add it the list
 	if (CS->family == INET){
-		//lock the run of the list of clipboard "clients"
+		//lock the run of the list of clipboard "clients" - por no relatorio q se assim nao fosse, se hoivesse uma modificacao a meio da atualizacao esse novo clipboard ja nao seria atualizado
 		if (pthread_mutex_lock(&mutex_init) != 0){
 			printf("mutex writeUP lock failure\n");
 			exit(-1);
 		}
-
-		Smessage data;
-		int data_size = sizeof(Smessage);
-		for (int i = 0; i < 10; data.region = ++i){
-			if (read(client_fd, &data, data_size) > 0)
-				send_region(client_fd, data, data_size, PASTE);
-		}
+		regions_init_client(client_fd);//
 		head = add_down_list(head, client_fd);
-	
+		//unlock
 		if (pthread_mutex_unlock(&mutex_init) != 0){
 			printf("mutex writeUP lock failure\n");
 			exit(-1);
@@ -133,6 +127,8 @@ void *accept_clients(void * CS_){
 
 	//handle the client requests
 	connection_handle(client_fd, DOWN);
+
+	//TEMPORARY PRINT FOR TESTING
 	printf("acabou connection type (inet/unix) %d\n", CS->family);
  return NULL;
 }
@@ -149,7 +145,7 @@ void connection_handle(int fd, int reference){
 
 	//listens until the connection is closed
 	while ( read(fd, &data, data_size) > 0){
-		//check for valid region
+		//check for valid region JJJUUSSSTT FFOOORRR DDEEEBBBUUUGGG
 		if ( (data.region < 0) || (data.region > REGIONS_NR)){
 			printf("received wrong region in connection_handle\n");
 			exit(-2);
@@ -161,9 +157,7 @@ void connection_handle(int fd, int reference){
 			else if (reference == DOWN)
 				send_up_region(fd, data, data_size);
 		}
-		else if (data.order == PASTE)
-			send_region(fd, data, data_size, PASTE);
-		else if (data.order == WAIT)
-			send_region(fd, data, data_size, WAIT);
+		else
+			send_region(fd, data, data_size, data.order);
 	}printf("acabou connection type (up/down) %d\n", reference);
 }

@@ -18,7 +18,7 @@
 int clipboard_connect(char * clipboard_dir){
 	struct sockaddr_un server_addr;
 
-	//create the socket stream to talk to the clipboard
+	//create the endpoint to the clipboard
 	int sock_fd= socket(AF_UNIX, SOCK_STREAM, 0);	
 	if (sock_fd == -1){
 		perror("socket: ");
@@ -52,9 +52,6 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 	Smessage data;
 	data.region = region;
 	data.order = COPY;
-
-	if (count < 0)
-		return 0;
 
 	data.message_size = count;
 
@@ -90,13 +87,13 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
  *             or returns 0 in case of error
  */
 int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
-	int data_size = sizeof(Smessage);sleep(1);
+	int data_size = sizeof(Smessage);
 	Smessage data;
 	data.region = region;
 	data.order = PASTE;
 
-	// check for valid region
-	if ((region < 0) || (region > REGIONS_NR) )	
+	// check for valid region or count 0
+	if ((region < 0) || (region > REGIONS_NR) || count == 0)	
 		return 0;
 
 	//send the region requested
@@ -115,22 +112,10 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	if (data.region == -1 || (count > 0 && data.message_size > count))	
 		return 0;
 
-	//buffer is not allocated
-	if (count == 0 ){
-		buf  = (void *) malloc(data.message_size);
-		if ( buf == NULL){
-			printf ("malloc failure\n");
-			exit (-1);
-		}
-	} 
-	//check if buffer came allocated
-	else if (buf == NULL)
-		return 0;
-
 	//read the message
 	if (read(clipboard_id, buf, data.message_size) < 0){
 		perror("read: ");
-		exit(-1);
+		return 0;
 	}
 
  return data.message_size;
@@ -154,8 +139,8 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 	data.region = region;
 	data.order = WAIT;
 
-	// check for valid region
-	if ((region < 0) || (region > REGIONS_NR) )	
+	// check for valid region or count 0
+	if ((region < 0) || (region > REGIONS_NR) || count == 0)	
 		return 0;
 
 	//send the region requested
@@ -174,23 +159,10 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 	if (data.region == -1 || (count > 0 && data.message_size > count))	
 		return 0;
 
-	//buffer is not allocated
-	if (count == 0 ){
-		buf  = (void *) malloc(data.message_size);
-		if ( buf == NULL){
-			printf ("malloc failure\n");
-			exit (-1);
-		}
-	} 
-	//check if buffer came allocated
-	else if (buf == NULL)
-		return 0;
-
-
 	//read the message
 	if (read(clipboard_id, buf, data.message_size) < 0){
 		perror("read: ");
-		exit(-1);
+		return 0;
 	}
 
  return data.message_size;

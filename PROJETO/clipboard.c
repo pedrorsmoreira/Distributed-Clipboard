@@ -28,11 +28,11 @@ int main(int argc, char **argv){
 //INITIALIZE LOCAL CLIPBOARD
 	if (argc == 4 && strcmp(argv[1], "-c") == 0){
 			server_fd = connected_clipboard_init(argv[2], argv[3]);
-			regions_init(server_fd);
+			regions_init_local(server_fd);
 	}
 	else if (argc == 1){
 		server_fd = redundant_server();
-		regions_init(-1);
+		regions_init_local(-1);
 	}
 	else{
 		printf("invalid arguments\n");
@@ -72,5 +72,5 @@ int main(int argc, char **argv){
 	server_fd = redundant_server();
 	connection_handle(server_fd, UP);
 	
- exit (-3);
+ exit (-1);
 }

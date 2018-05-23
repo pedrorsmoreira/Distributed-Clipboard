@@ -12,7 +12,11 @@ extern pthread_mutex_t mutex_writeUP;
 extern pthread_rwlock_t regions_lock_rw[];
 extern pthread_mutex_t wait_mutexes[];
 extern pthread_cond_t wait_conditions[];
-extern int pend_waits[];
+
+void system_error(char *error){
+	perror("%s : ", error);
+	exit(-1);
+}
 
 /**
  * @brief      initializes the variables for 
@@ -40,7 +44,6 @@ void init_locks(int regions_nr){
 			perror("regions_lock_rw init: ");
 			exit(-1); 
 		}
-		pend_waits[i] = 0;
 	}
 }
 
@@ -147,6 +150,9 @@ down_list *remove_down_list(down_list *head, int client_fd){
 	down_list * aux = head->next->next; 
 	free(head->next);
 	head->next=aux;
+
+	//close the socket of the finnished connection
+	close(client_fd);
 
  return head_ret;
 }
