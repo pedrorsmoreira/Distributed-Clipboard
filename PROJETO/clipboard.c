@@ -42,30 +42,26 @@ int main(int argc, char **argv){
 //INITIALIZE THE SERVERS
 	//initialize the server to handle local connections (apps)
 	pthread_t thread_id_un;
-	if (pthread_create(&thread_id_un, NULL, server_init, (void *) UNIX) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}
+	if (pthread_create(&thread_id_un, NULL, server_init, (void *) UNIX) != 0)
+		system_error();
+	
 	//initialize the servers to handle remote connections (clipboards)
 	pthread_t thread_id_in;
-	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}
+	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0)
+		system_error();
+	
 
 //LAUNCH THE CYCLES TO PROCESS THE CONNECTIONS
 	//launch the cycle to handle local connections (apps)
 	pthread_join(thread_id_un, (void **) &CS_un);
-	if (pthread_create(&thread_id_un, NULL, accept_clients, CS_un) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}
+	if (pthread_create(&thread_id_un, NULL, accept_clients, CS_un) != 0)
+		system_error();
+	
 	//launch the cycle to handle remote connections (clipboards)
 	pthread_join(thread_id_in, (void **) &CS_in);
-	if (pthread_create(&thread_id_in, NULL, accept_clients, CS_in) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}
+	if (pthread_create(&thread_id_in, NULL, accept_clients, CS_in) != 0)
+		system_error();
+	
 
 	//receive updates from the clipboard "server"
 	connection_handle(server_fd, UP);

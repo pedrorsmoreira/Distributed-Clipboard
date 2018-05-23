@@ -5,6 +5,7 @@
 #define INET 1
 #define DOWN 0
 #define UP 1
+#define MAX_PORT 63714
 
 /**
  * struct with info to accpet clients via socket-stream

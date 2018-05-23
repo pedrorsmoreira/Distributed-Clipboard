@@ -20,10 +20,8 @@ int clipboard_connect(char * clipboard_dir){
 
 	//create the endpoint to the clipboard
 	int sock_fd= socket(AF_UNIX, SOCK_STREAM, 0);	
-	if (sock_fd == -1){
-		perror("socket: ");
-		exit(-1);
-	}
+	if (sock_fd == -1)
+		return -1; 
 
 	//set the local communication parameters
 	server_addr.sun_family = AF_UNIX;

@@ -23,27 +23,21 @@ void system_error(){
  * 			   multi-threading locks
  */
 void init_locks(int regions_nr){
-	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0){	
-		perror("mutex init: ");
-		exit(-1); 
-	}
-	if(pthread_mutex_init(&mutex_init, NULL) != 0){	
-		perror("mutex init: ");
-		exit(-1); 
-	}
+	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0)
+		system_error(); 
+	
+	if(pthread_mutex_init(&mutex_init, NULL) != 0)
+		system_error()
+
 	for (int i = 0; i < regions_nr; i ++){
-		if(pthread_rwlock_init(&regions_lock_rw[i], NULL) != 0){	
-			perror("regions_lock_rw init: ");
-			exit(-1); 
-		}
-		if(pthread_mutex_init(&wait_mutexes[i], NULL) != 0){	
-			perror("regions_lock_rw init: ");
-			exit(-1); 
-		}
-		if(pthread_cond_init(&wait_conditions[i], NULL) != 0){	
-			perror("regions_lock_rw init: ");
-			exit(-1); 
-		}
+		if(pthread_rwlock_init(&regions_lock_rw[i], NULL) != 0)
+			system_error(); 
+
+		if(pthread_mutex_init(&wait_mutexes[i], NULL) != 0)
+			system_error(); 
+
+		if(pthread_cond_init(&wait_conditions[i], NULL) != 0)
+			system_error(); 
 	}
 }
 
@@ -66,16 +60,12 @@ int connected_clipboard_init(char *IP, char *port_){
 	inet_aton(IP, &server_addr.sin_addr);
 	
 	//create the endpoint to connect
-	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-		perror("socket: ");
-		exit(-1);
-	}
+	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		system_error(); 
 
 	//connect with clipboard "server"
-	if(connect(server_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0){
-	printf("Error connecting with the server!!!\n");
-	exit(-1);
-	}
+	if(connect(server_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0)
+		system_error(); 
 
  return server_fd;
 }
@@ -101,10 +91,9 @@ int rand_port_gen(){
  */
 int redundant_server(){
 	int fd[2];
-	if (pipe(fd)< 0){
-		perror("pipe: ");
-		exit(-1);
-	}
+	if (pipe(fd)< 0)
+		system_error(); 
+	
 	server_fd = fd[1];
  
  return fd[0];

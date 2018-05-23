@@ -29,7 +29,7 @@ void *server_init(void * family){
 
 	//set the communication type parameters 
 	if (family == (void *) UNIX){
-		port = 63715;
+		port = (MAX_PORT+1);
 		unlink(SOCK_ADDRESS);
 		struct sockaddr_un local_addr_un;
 		addrlen = sizeof(local_addr_un);
@@ -50,13 +50,11 @@ void *server_init(void * family){
 	}
 
 	//check endpoint creation failure
-	if (CS->sock_fd < 0){
-		perror("socket: ");
-		exit (-1);
-	}
+	if (CS->sock_fd < 0)
+		system_error();
 
 	while (bind(CS->sock_fd, local_addr, addrlen) < 0){
-		if (port < 63715){
+		if (port < (MAX_PORT+1)){
 			((struct sockaddr_in*) local_addr) -> sin_port = htons(++ port);
 			continue;
 		}
@@ -68,10 +66,8 @@ void *server_init(void * family){
 		printf("port number: %d\n", port);
 
 	//get ready to act as a server
-	if (listen (CS->sock_fd, 10) == -1){
-		perror("listen: ");
-		exit (-1);
-	}
+	if (listen (CS->sock_fd, 10) == -1)
+		system_error();
 
  return (void *) CS;
 }
@@ -104,33 +100,26 @@ void *accept_clients(void * CS_){
 	
 	//stablish connections with the client
 	client_fd = accept( CS->sock_fd, client_addr, &size);
-	if (client_fd == -1){
-		perror("accept: ");
-		exit (-1);
-	}
+	if (client_fd == -1)
+		system_error();
 
 	//if clipboard "client" add it the list
 	if (CS->family == INET){
 		//lock the run of the list of clipboard "clients" - por no relatorio q se assim nao fosse, se hoivesse uma modificacao a meio da atualizacao esse novo clipboard ja nao seria atualizado
-		if (pthread_mutex_lock(&mutex_init) != 0){
-			printf("mutex writeUP lock failure\n");
-			exit(-1);
-		}
+		if (pthread_mutex_lock(&mutex_init) != 0)
+			system_error();
+
 		regions_init_client(client_fd);//
 		head = add_down_list(head, client_fd);
 		//unlock
-		if (pthread_mutex_unlock(&mutex_init) != 0){
-			printf("mutex writeUP lock failure\n");
-			exit(-1);
-		}
+		if (pthread_mutex_unlock(&mutex_init) != 0)
+			system_error();
 	}
 
 	//create new thread for next client connection
 	pthread_t thread_id;
-	if (pthread_create(&thread_id, NULL, accept_clients, CS) != 0){
-		perror("pthread_create: ");
-		exit(-1);
-	}
+	if (pthread_create(&thread_id, NULL, accept_clients, CS) != 0)
+		system_error();
 
 	//handle the client requests
 	connection_handle(client_fd, DOWN);
