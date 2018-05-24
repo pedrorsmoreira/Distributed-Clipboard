@@ -31,7 +31,7 @@ int fd = clipboard_connect("./");
 int ret1 = clipboard_copy(fd, region, NULL, 10);
 int ret2 = clipboard_copy(fd, region + 1, palavra, 10);
 
-printf("retornou %d e %d\n", ret1, ret2);
+printf("APP retornou %d e %d\n", ret1, ret2);
 
 return 0;
 

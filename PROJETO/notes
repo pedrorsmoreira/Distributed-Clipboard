@@ -1,1 +1,3 @@
 depois de tratar de mensagens incoerentes vindas da app, ver se da maneira que as mensagens ficam guardads nas regioes, o update que é feito a um clipboard novo que se liga está em sintonia...
+
+Pelo debbug que está a vir dos prints, a única maneira que me está a parecer viável para corrigir incoerências de mensagem e tamanho vindas do user é mandar a mensagem e se o write retornar o esperado(ou nao), mandar outro write a informar que o write retornou o correto(ou nao).

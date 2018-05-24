@@ -75,8 +75,9 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){int 
 			system_error();
 
 		//read the message and copy it to its region
-		if ( temporary = read(fd, regions[data.region].message, data.message_size) < 0)
-			system_error();
+		if ( (temporary = read(fd, regions[data.region].message, data.message_size)) <= 0)
+			return;
+		
 		printf("read da mensagem no update region retornou: %d\n", temporary);
 		
 	//unlock the critical region access
@@ -122,8 +123,9 @@ void send_up_region(int fd, Smessage data, int data_size){int temporary;
 		system_error();
 
 	//read the message
-	if ( read(fd, buf, data.message_size) < 0)
-		system_error();
+	if ( (temporary = read(fd, buf, data.message_size)) <= 0)
+		return;
+	
 	printf("read da mensagem no send_up retornou: %d\n", temporary);
 
 	//lock the writes to clipboard "server"
@@ -131,13 +133,15 @@ void send_up_region(int fd, Smessage data, int data_size){int temporary;
 		system_error();
 	
 		//send up the message info
-		if (temporary = write(server_fd, &data, data_size) < 0)
-			system_error();
+		if ( (temporary = write(server_fd, &data, data_size)) <= 0)
+			return;
+		
 		printf("write da info no send_up retornou: %d\n", temporary);
 
 		//send up the message
-		if (temporary = write(server_fd, buf, data.message_size) < 0)
-			system_error();
+		if ( (temporary = write(server_fd, buf, data.message_size)) <= 0)
+			return;
+		
 		printf("write da mensagem no send_up retornou: %d\n", temporary);
 
 	//unlock the writes to clipboard "server"
@@ -185,8 +189,9 @@ void send_region(int fd, Smessage data, int data_size, int order){int temporary;
 			data.message_size = regions[data.region].size;
 		
 		//send the message info
-		if (temporary = write(fd, &data, data_size) < 0)
-			system_error();
+		if ( (temporary = write(fd, &data, data_size)) <= 0)
+			return;
+		
 		printf("wirte da info no send retornou: %d\n", temporary);
 
 		//if there was nothing to paste, leaves
@@ -194,8 +199,9 @@ void send_region(int fd, Smessage data, int data_size, int order){int temporary;
 			return;
 
 		//send the message requested
-		if (temporary = write(fd, regions[data.region].message, data.message_size) < 0)
-			system_error();
+		if ( (temporary = write(fd, regions[data.region].message, data.message_size)) <= 0)
+			return;
+		
 		printf("wirte da mensagem no send retornou: %d\n", temporary);
 
 	//unlock the critical region

@@ -145,10 +145,10 @@ void connection_handle(int fd, int reference){int temporary;
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while (temporary = read(fd, &data, data_size) == data_size){printf("leu dados da msg com o tamanho certo (%d bytes)\n", temporary);
+	while ( (temporary = read(fd, &data, data_size)) == data_size ){printf("leu dados da msg com o tamanho certo (%d bytes)\n", temporary);
 		//check for valid region JJJUUSSSTT FFOOORRR DDEEEBBBUUUGGG
 		if ( (data.region < 0) || (data.region > REGIONS_NR)){
-			printf("received wrong region in connection_handle\n");
+			printf("received wrong region from type (up/down) %d\n", reference);
 			exit(-2);
 		}
 		//process the order

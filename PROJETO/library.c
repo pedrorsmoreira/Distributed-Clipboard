@@ -45,7 +45,7 @@ int clipboard_connect(char * clipboard_dir){
  * @return     returns the number of bytes copied
  *             or returns 0 in case of error
  */
-int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
+int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){int temporary;
 	int data_size = sizeof(Smessage);
 	Smessage data;
 	data.region = region;
@@ -58,16 +58,16 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//send the message specs
-	if ( write(clipboard_id, &data, data_size) <= 0){
-		printf("write da info no clipboard_copy <=0\n");
+	if ( (temporary = write(clipboard_id, &data, data_size)) <= 0){
+		printf("write da info no clipboard_copy retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("write da info no clipboard_copy retornou: %d\n", temporary);
 
 	//send the message
-	if ( write(clipboard_id, buf, data.message_size) <= 0){
-		printf("write da message no clipboard_copy <=0\n");
+	if ( ( temporary = write(clipboard_id, buf, data.message_size)) <= 0){
+		printf("write da mensagem no clipboard_copy retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("write da mensagem no clipboard_copy retornou: %d\n", temporary);
 
  return data.message_size;
 }
@@ -84,7 +84,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
  * @return     returns the number of bytes stored in the buffer
  *             or returns 0 in case of error
  */
-int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
+int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){int temporary;
 	int data_size = sizeof(Smessage);
 	Smessage data;
 	data.region = region;
@@ -95,26 +95,26 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//send the region requested
-	if (write(clipboard_id, &data, data_size) <= 0){
-		printf("write da info no clipboard_paste <=0\n");
+	if ( (temporary = write(clipboard_id, &data, data_size)) <= 0){
+		printf("write da info no clipboard_paste retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("write da info no clipboard_paste retornou: %d\n", temporary);
 
 	//read the message specs
-	if (read(clipboard_id, &data, data_size) <= 0){
-		printf("read da info no clipboard_paste <=0\n");
+	if ( (temporary = read(clipboard_id, &data, data_size)) <= 0){
+		printf("read da info no clipboard_paste retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("read da info no clipboard_paste retornou: %d\n", temporary);
 
 	//if the region is empty or message too big
 	if (data.region == -1 || (count > 0 && data.message_size > count))	
 		return 0;
 
 	//read the message
-	if (read(clipboard_id, buf, data.message_size) <= 0){
-		printf("read da mensagem no clipboard_paste <=0\n");
+	if ( (temporary = read(clipboard_id, buf, data.message_size)) <= 0){
+		printf("read da mensagem no clipboard_paste retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("read da mensagem no clipboard_paste retornou: %d\n", temporary);
 
  return data.message_size;
 }
@@ -131,7 +131,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
  * @return     returns the number of bytes stored in the buffer
  *             or returns 0 in case of error
  */
-int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
+int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){int temporary;
 	int data_size = sizeof(Smessage);
 	Smessage data;
 	data.region = region;
@@ -142,26 +142,26 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//send the region requested
-	if (write(clipboard_id, &data, data_size) <= 0){
-		printf("write da info no clipboard_wait <=0\n");
+	if ( (temporary = write(clipboard_id, &data, data_size)) <= 0){
+		printf("write da info no clipboard_paste retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("write da info no clipboard_paste retornou: %d\n", temporary);
 
 	//read the message specs
-	if (read(clipboard_id, &data, data_size) <= 0){
-		printf("read da info no clipboard_wait <=0\n");
+	if ( (temporary = read(clipboard_id, &data, data_size)) <= 0){
+		printf("read da info no clipboard_paste retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("read da info no clipboard_paste retornou: %d\n", temporary);
 
 	//if the region is empty or message too big
 	if (data.region == -1 || (count > 0 && data.message_size > count))	
 		return 0;
 
 	//read the message
-	if (read(clipboard_id, buf, data.message_size) <= 0){
-		printf("read da mensagem no clipboard_wait <=0\n");
+	if ( (temporary = read(clipboard_id, buf, data.message_size)) <= 0){
+		printf("read da mensagem no clipboard_paste retornou: %d\n", temporary);
 		return 0;
-	}
+	}printf("read da mensagem no clipboard_paste retornou: %d\n", temporary);
 
  return data.message_size;
 }
