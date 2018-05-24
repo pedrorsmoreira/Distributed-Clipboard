@@ -61,7 +61,7 @@ for (int i = 0; i < REGIONS_NR; i++)
  * @param[in]  data       structure with mesaage info
  * @param[in]  data_size  size of data (bytes)
  */
-void update_region( down_list **head, int fd, Smessage data, int data_size){
+void update_region( down_list **head, int fd, Smessage data, int data_size){int temporary;
 	//lock the critical region access
 	if (pthread_rwlock_wrlock(&regions_lock_rw[data.region]) != 0)
 		system_error();
@@ -75,8 +75,9 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 			system_error();
 
 		//read the message and copy it to its region
-		if ( read(fd, regions[data.region].message, data.message_size) < 0)
+		if ( temporary = read(fd, regions[data.region].message, data.message_size) < 0)
 			system_error();
+		printf("read da mensagem no update region retornou: %d\n", temporary);
 		
 	//unlock the critical region access
 	if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
@@ -97,12 +98,11 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 		down_list *aux_next;
 		while(aux != NULL){
 			aux_next = aux->next;
-			if (write(aux->fd, &data, data_size) <= 0){
+			if (write(aux->fd, &data, data_size) <= 0)
 				*head = remove_down_list(*head, aux->fd);
-			}
-			else if ( write(aux->fd, regions[data.region].message, data.message_size) <= 0){
+			else if ( write(aux->fd, regions[data.region].message, data.message_size) <= 0)
 				*head = remove_down_list(*head, aux->fd);
-			}
+
 		 aux = aux_next;
 		}
 	if (pthread_mutex_unlock(&mutex_init)!=0)
@@ -116,7 +116,7 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
  * @param[in]  data       structure with the message info
  * @param[in]  data_size  size of data (bytes)
  */
-void send_up_region(int fd, Smessage data, int data_size){
+void send_up_region(int fd, Smessage data, int data_size){int temporary;
 	void *buf = (void *) malloc(data.message_size);
 	if ( buf == NULL)
 		system_error();
@@ -124,18 +124,21 @@ void send_up_region(int fd, Smessage data, int data_size){
 	//read the message
 	if ( read(fd, buf, data.message_size) < 0)
 		system_error();
+	printf("read da mensagem no send_up retornou: %d\n", temporary);
 
 	//lock the writes to clipboard "server"
 	if (pthread_mutex_lock(&mutex_writeUP) != 0)
 		system_error();
 	
 		//send up the message info
-		if ( write(server_fd, &data, data_size) < 0)
+		if (temporary = write(server_fd, &data, data_size) < 0)
 			system_error();
+		printf("write da info no send_up retornou: %d\n", temporary);
 
 		//send up the message
-		if ( write(server_fd, buf, data.message_size) < 0)
+		if (temporary = write(server_fd, buf, data.message_size) < 0)
 			system_error();
+		printf("write da mensagem no send_up retornou: %d\n", temporary);
 
 	//unlock the writes to clipboard "server"
 	if (pthread_mutex_unlock(&mutex_writeUP)!=0)
@@ -151,7 +154,7 @@ void send_up_region(int fd, Smessage data, int data_size){
  * @param[in]  data       struct with the message info
  * @param[in]  data_size  message size in bytes
  */
-void send_region(int fd, Smessage data, int data_size, int order){
+void send_region(int fd, Smessage data, int data_size, int order){int temporary;
 	//only leaves the if when the region is modified
 	if (order == WAIT)	{
 		if (pthread_mutex_lock(&(wait_mutexes[data.region])) != 0)
@@ -182,17 +185,19 @@ void send_region(int fd, Smessage data, int data_size, int order){
 			data.message_size = regions[data.region].size;
 		
 		//send the message info
-		if ( write(fd, &data, data_size) < 0)
+		if (temporary = write(fd, &data, data_size) < 0)
 			system_error();
+		printf("wirte da info no send retornou: %d\n", temporary);
 
 		//if there was nothing to paste, leaves
 		if (data.region == -1)
 			return;
 
 		//send the message requested
-		if ( write(fd, regions[data.region].message, data.message_size) < 0)
+		if (temporary = write(fd, regions[data.region].message, data.message_size) < 0)
 			system_error();
-		
+		printf("wirte da mensagem no send retornou: %d\n", temporary);
+
 	//unlock the critical region
 	if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
 		system_error();

@@ -58,14 +58,14 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//send the message specs
-	if ( write(clipboard_id, &data, data_size) < 0){
-		perror("write: ");
+	if ( write(clipboard_id, &data, data_size) <= 0){
+		printf("write da info no clipboard_copy <=0\n");
 		return 0;
 	}
 
 	//send the message
-	if ( write(clipboard_id, buf, data.message_size) < 0){
-		perror("write: ");
+	if ( write(clipboard_id, buf, data.message_size) <= 0){
+		printf("write da message no clipboard_copy <=0\n");
 		return 0;
 	}
 
@@ -95,14 +95,14 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//send the region requested
-	if (write(clipboard_id, &data, data_size) < 0){
-		perror("write: ");
+	if (write(clipboard_id, &data, data_size) <= 0){
+		printf("write da info no clipboard_paste <=0\n");
 		return 0;
 	}
 
 	//read the message specs
-	if (read(clipboard_id, &data, data_size) < 0){
-		perror("read: ");
+	if (read(clipboard_id, &data, data_size) <= 0){
+		printf("read da info no clipboard_paste <=0\n");
 		return 0;
 	}
 
@@ -111,8 +111,8 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//read the message
-	if (read(clipboard_id, buf, data.message_size) < 0){
-		perror("read: ");
+	if (read(clipboard_id, buf, data.message_size) <= 0){
+		printf("read da mensagem no clipboard_paste <=0\n");
 		return 0;
 	}
 
@@ -142,14 +142,14 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//send the region requested
-	if (write(clipboard_id, &data, data_size) < 0){
-		perror("write: ");
+	if (write(clipboard_id, &data, data_size) <= 0){
+		printf("write da info no clipboard_wait <=0\n");
 		return 0;
 	}
 
 	//read the message specs
-	if (read(clipboard_id, &data, data_size) < 0){
-		perror("read: ");
+	if (read(clipboard_id, &data, data_size) <= 0){
+		printf("read da info no clipboard_wait <=0\n");
 		return 0;
 	}
 
@@ -158,8 +158,8 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//read the message
-	if (read(clipboard_id, buf, data.message_size) < 0){
-		perror("read: ");
+	if (read(clipboard_id, buf, data.message_size) <= 0){
+		printf("read da mensagem no clipboard_wait <=0\n");
 		return 0;
 	}
 

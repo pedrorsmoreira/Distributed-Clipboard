@@ -63,12 +63,12 @@ void *server_init(void * family){
 			system_error();
 	}
 
-	if (family == (void *) INET)
-		printf("port number: %d\n", port);
-
 	//get ready to act as a server
 	if (listen (CS->sock_fd, 10) == -1)
 		system_error();
+
+	if (family == (void *) INET)
+		printf("port number: %d\n", port);
 
  return (void *) CS;
 }
@@ -140,12 +140,12 @@ void *accept_clients(void * CS_){
  * @param[in]  fd         connection file descriptor
  * @param[in]  reference  server (UP) or client(DOWN)
  */
-void connection_handle(int fd, int reference){
+void connection_handle(int fd, int reference){int temporary;
 	Smessage data;
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( read(fd, &data, data_size) == data_size){printf("fez1\n");
+	while (temporary = read(fd, &data, data_size) == data_size){printf("leu dados da msg com o tamanho certo (%d bytes)\n", temporary);
 		//check for valid region JJJUUSSSTT FFOOORRR DDEEEBBBUUUGGG
 		if ( (data.region < 0) || (data.region > REGIONS_NR)){
 			printf("received wrong region in connection_handle\n");
