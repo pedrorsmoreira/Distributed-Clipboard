@@ -78,7 +78,7 @@ if ( write(fd, &data, sizeof(Smessage)) != sizeof(Smessage) )
  * @param[in]  data       structure with mesaage info
  * @param[in]  data_size  size of data (bytes)
  */
-void update_region( down_list **head, int fd, Smessage data, int data_size){int temporary;
+void update_region( down_list **head, int fd, Smessage data, int data_size){
 	void *buf = (void *) malloc (data.message_size);
 	if(buf == NULL)
 		system_error("malloc in update");
@@ -94,7 +94,7 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){int 
 		regions[data.region].size = data.message_size;
 
 		//read the message and copy it to its region
-		if ( (temporary = read(fd, regions[data.region].message, data.message_size)) != data.message_size)
+		if (read(fd, regions[data.region].message, data.message_size) != data.message_size)
 			return;
 		
 	if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
@@ -110,7 +110,7 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){int 
 		//update clipboard "clients"
 		down_list *aux = *head;
 		down_list *aux_next;
-		while(aux != NULL){
+		while(aux != NULL){printf("oi\n");
 			aux_next = aux->next;
 			if (write(aux->fd, &data, data_size) != data_size)
 				*head = remove_down_list(*head, aux->fd);
@@ -130,7 +130,7 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){int 
  * @param[in]  data       structure with the message info
  * @param[in]  data_size  size of data (bytes)
  */
-void send_up_region(int fd, Smessage data, int data_size){int temporary;
+void send_up_region(int fd, Smessage data, int data_size){
 	void *buf = (void *) malloc(data.message_size);
 	if ( buf == NULL){
 		close(fd);
@@ -138,7 +138,7 @@ void send_up_region(int fd, Smessage data, int data_size){int temporary;
 	}
 
 	//read the message
-	if ( (temporary = read(fd, buf, data.message_size)) != data.message_size){
+	if ( read(fd, buf, data.message_size) != data.message_size){
 		free(buf);
 		return;
 	}
@@ -148,13 +148,13 @@ void send_up_region(int fd, Smessage data, int data_size){int temporary;
 		system_error("mutex_writeUP lock in send_up");
 	
 		//send up the message info
-		if ( (temporary = write(server_fd, &data, data_size)) != data_size){
+		if ( write(server_fd, &data, data_size) != data_size){
 			free(buf);
 			return;
 		}
 		
 		//send up the message
-		if ( (temporary = write(server_fd, buf, data.message_size)) != data.message_size){
+		if (write(server_fd, buf, data.message_size) != data.message_size){
 			free(buf);
 			return;
 		}
@@ -172,7 +172,7 @@ void send_up_region(int fd, Smessage data, int data_size){int temporary;
  * @param[in]  data       struct with the message info
  * @param[in]  data_size  message size in bytes
  */
-void send_region(int fd, Smessage data, int data_size, int order){int temporary;
+void send_region(int fd, Smessage data, int data_size, int order){
 	//only leaves the if when the region is modified
 	if (order == WAIT)	{
 		if (pthread_mutex_lock(&(wait_mutexes[data.region])) != 0)
@@ -202,7 +202,7 @@ void send_region(int fd, Smessage data, int data_size, int order){int temporary;
 			data.message_size = regions[data.region].size;
 		
 		//send the message info
-		if ( (temporary = write(fd, &data, data_size)) != data_size)
+		if ( write(fd, &data, data_size) != data_size)
 			return;
 		
 		//if there was nothing to paste, leaves
@@ -210,7 +210,7 @@ void send_region(int fd, Smessage data, int data_size, int order){int temporary;
 			return;
 
 		//send the message requested
-		if ( (temporary = write(fd, regions[data.region].message, data.message_size)) != data.message_size)
+		if (write(fd, regions[data.region].message, data.message_size) != data.message_size)
 			return;
 
 	//unlock the critical region

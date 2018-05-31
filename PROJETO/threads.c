@@ -141,12 +141,12 @@ if (pthread_detach(self) != 0)
  * @param[in]  fd         connection file descriptor
  * @param[in]  reference  server (UP) or client(DOWN)
  */
-void connection_handle(int fd, int reference){int temporary;
+void connection_handle(int fd, int reference){
 	Smessage data;
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( (temporary = read(fd, &data, data_size)) == data_size ){
+	while (read(fd, &data, data_size) == data_size ){
 		if ( (data.region < 0) || (data.region > REGIONS_NR - 1)){
 			exit(-3);
 		}
