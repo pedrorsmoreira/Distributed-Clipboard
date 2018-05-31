@@ -24,7 +24,7 @@ int fd = clipboard_connect("./");
 	for (int i=0; i<10; i++)
 	{
 		clipboard_copy(fd , i, palavra, 10);
-		//clipboard_paste(fd, i, palavra, 10); 
+		clipboard_paste(fd, i, palavra, 10); 
 	}
 	close(fd);
 
