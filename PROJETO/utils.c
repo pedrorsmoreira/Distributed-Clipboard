@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 
+#include "clipboard.h"
+
 extern int server_fd;
 extern pthread_mutex_t mutex_init;
 extern pthread_mutex_t mutex_writeUP;
@@ -14,8 +16,10 @@ extern pthread_rwlock_t regions_lock_rw[];
 extern pthread_mutex_t wait_mutexes[];
 extern pthread_cond_t wait_conditions[];
 
+
 void system_error(){
 	perror("ERROR: ");
+	unlink(SOCK_ADDRESS);
 	exit(-1);
 }
 
@@ -23,14 +27,14 @@ void system_error(){
  * @brief      initializes the variables for 
  * 			   multi-threading locks
  */
-void init_locks(int regions_nr){
+void init_locks(){
 	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0)
 		system_error(); 
 	
 	if(pthread_mutex_init(&mutex_init, NULL) != 0)
 		system_error();
 
-	for (int i = 0; i < regions_nr; i ++){
+	for (int i = 0; i < REGIONS_NR; i ++){
 		if(pthread_rwlock_init(&regions_lock_rw[i], NULL) != 0)
 			system_error(); 
 
@@ -66,7 +70,7 @@ int connected_clipboard_init(char *IP, char *port_){
 
 	//connect with clipboard "server"
 	if(connect(server_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0)
-		system_error(); 
+		return -1;
 
  return server_fd;
 }

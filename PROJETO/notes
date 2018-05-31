@@ -1,3 +1,3 @@
-depois de tratar de mensagens incoerentes vindas da app, ver se da maneira que as mensagens ficam guardads nas regioes, o update que é feito a um clipboard novo que se liga está em sintonia...
+(mutex_init) por no relatorio q se assim nao fosse, se hoivesse uma modificacao a meio da atualizacao esse novo clipboard ja nao seria atualizado.
 
-Pelo debbug que está a vir dos prints, a única maneira que me está a parecer viável para corrigir incoerências de mensagem e tamanho vindas do user é mandar a mensagem e se o write retornar o esperado(ou nao), mandar outro write a informar que o write retornou o correto(ou nao).
+exit(0) -> Ctrl^C; exit(-1) -> system call failure; exit(-2) -> invalid input arguments; exit(3) -> regiao errada no send region (PROTOCOLO VIOLADO)

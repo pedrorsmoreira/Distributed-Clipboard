@@ -22,8 +22,8 @@ extern pthread_mutex_t mutex_init;
  */
 void *server_init(void * family){
 	int port;
-	struct sockaddr *local_addr;
-	socklen_t addrlen;
+	struct sockaddr *local_addr = NULL;
+	socklen_t addrlen = 0;
 
 	client_socket *CS = (client_socket *) malloc(sizeof(client_socket));
 	CS->family = family;
@@ -88,7 +88,7 @@ void *accept_clients(void * CS_){
 	int client_fd;
 
 	//set the connection parameters
-	struct sockaddr *client_addr;
+	struct sockaddr *client_addr = NULL;
 	socklen_t size = sizeof(struct sockaddr);
 	if (CS->family == UNIX){
 		struct sockaddr_un client_addr_un;
@@ -99,20 +99,19 @@ void *accept_clients(void * CS_){
 		client_addr = (struct sockaddr *) &client_addr_in;
 	}
 	
-	//stablish connections with the client
+	//stablish connections with the client (wait for the client to connect)
 	if ( (client_fd = accept( CS->sock_fd, client_addr, &size)) == -1)
 		system_error();
 
-	//if clipboard "client" add it the list
+	//if it is a clipboard -> add it to the list
 	if (CS->family == INET){
-		//lock the run of the list of clipboard "clients" - por no relatorio q se assim nao fosse, se hoivesse uma modificacao a meio da atualizacao esse novo clipboard ja nao seria atualizado
+		//lock the run of the list of clipboard "clients"
 		if (pthread_mutex_lock(&mutex_init) != 0)
 			system_error();
 
-		regions_init_client(client_fd);//VEEERRRRR EEERRROOOO
-		head = add_down_list(head, client_fd);
+			regions_init_client(client_fd);
+			head = add_down_list(head, client_fd);
 		
-		//unlock
 		if (pthread_mutex_unlock(&mutex_init) != 0)
 			system_error();
 	}
@@ -130,7 +129,7 @@ void *accept_clients(void * CS_){
 		close(client_fd);
 
 	//TEMPORARY PRINT FOR TESTING
-	printf("acabou connection type (inet/unix) %d\n", CS->family);
+	//printf("acabou connection type (inet/unix) %d\n", CS->family);
  return NULL;
 }
 
@@ -145,13 +144,12 @@ void connection_handle(int fd, int reference){int temporary;
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( (temporary = read(fd, &data, data_size)) == data_size ){printf("leu dados da msg com o tamanho certo (%d bytes)\n", temporary);
-		//check for valid region JJJUUSSSTT FFOOORRR DDEEEBBBUUUGGG
-		if ( (data.region < 0) || (data.region > REGIONS_NR)){
+	while ( (temporary = read(fd, &data, data_size)) == data_size ){//printf("leu dados da msg com o tamanho certo (%d bytes)\n", temporary);
+		if ( (data.region < 0) || (data.region > REGIONS_NR - 1)){
 			printf("received wrong region from type (up/down) %d\n", reference);
-			exit(-2);
+			exit(-3);
 		}
-		//process the order
+
 		if (data.order == COPY){
 			if (reference == UP)
 				update_region(&head, fd, data, data_size);
@@ -160,5 +158,5 @@ void connection_handle(int fd, int reference){int temporary;
 		}
 		else
 			send_region(fd, data, data_size, data.order);
-	}printf("acabou connection type (up/down) %d\n", reference);
+	}//printf("acabou connection type (up/down) %d\n", reference);
 }
