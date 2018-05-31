@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 	client_socket *CS_in;
 
 	if (signal(SIGINT, terminate_ok) == SIG_ERR || signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-		system_error();
+		system_error("signal handlers in main");
 
 	//initialize the lock variables
 	init_locks();
@@ -52,26 +52,26 @@ int main(int argc, char **argv){
 	//initialize the server to handle local connections (apps)
 	pthread_t thread_id_un;
 	if (pthread_create(&thread_id_un, NULL, server_init, (void *) UNIX) != 0)
-		system_error();
+		system_error("initial pthread_create UN in main");
 	
 	//initialize the servers to handle remote connections (clipboards)
 	pthread_t thread_id_in;
 	if (pthread_create(&thread_id_in, NULL, server_init, (void *) INET) != 0)
-		system_error();
+		system_error("initial pthread_create IN in main");
 	
 
 //LAUNCH THE CYCLES TO PROCESS THE CONNECTIONS
 	//launch the cycle to handle local connections (apps)
 	if (pthread_join(thread_id_un, (void **) &CS_un) != 0)
-		system_error();
+		system_error("pthread_join UN in main");
 	if (pthread_create(&thread_id_un, NULL, accept_clients, CS_un) != 0)
-		system_error();
+		system_error("pthread create UN in main");
 	
 	//launch the cycle to handle remote connections (clipboards)
 	if (pthread_join(thread_id_in, (void **) &CS_in) != 0 )
-		system_error();
+		system_error("pthread_join IN in main");
 	if (pthread_create(&thread_id_in, NULL, accept_clients, CS_in) != 0)
-		system_error();
+		system_error("pthread create IN in main");
 	
 
 	//receive updates from the clipboard "server"
@@ -79,14 +79,14 @@ int main(int argc, char **argv){
 
 	//lock the writes to clipboard "server"
 	if (pthread_mutex_lock(&mutex_writeUP) != 0)
-		system_error();
+		system_error("mutex_writeUP lock in main");
 
 		//if connection with clipboard server ended, work in single mode
 		close (server_fd);
 		server_fd = redundant_server();
 
 	if (pthread_mutex_unlock(&mutex_writeUP) != 0)
-		system_error();
+		system_error("mutex_writeUP unlock in main");
 
 	connection_handle(server_fd, UP);
 	

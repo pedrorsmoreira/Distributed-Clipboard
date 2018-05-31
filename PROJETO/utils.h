@@ -13,7 +13,7 @@ typedef struct down_list_{
 	struct down_list_ *next;
 }down_list; 
 
-void system_error();
+void system_error(char *function);
 /**
  * @brief      initializes the variables for 
  * 			   multi-threading locks

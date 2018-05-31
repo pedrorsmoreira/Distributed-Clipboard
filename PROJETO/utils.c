@@ -17,7 +17,8 @@ extern pthread_mutex_t wait_mutexes[];
 extern pthread_cond_t wait_conditions[];
 
 
-void system_error(){
+void system_error(char *function){
+	printf("%s:\n", function);
 	perror("ERROR: ");
 	unlink(SOCK_ADDRESS);
 	exit(-1);
@@ -29,20 +30,20 @@ void system_error(){
  */
 void init_locks(){
 	if(pthread_mutex_init(&mutex_writeUP, NULL) != 0)
-		system_error(); 
+		system_error("mutex_writeUP init"); 
 	
 	if(pthread_mutex_init(&mutex_init, NULL) != 0)
-		system_error();
+		system_error("mutex_init init");
 
 	for (int i = 0; i < REGIONS_NR; i ++){
 		if(pthread_rwlock_init(&regions_lock_rw[i], NULL) != 0)
-			system_error(); 
+			system_error("regions_lock_rw init"); 
 
 		if(pthread_mutex_init(&wait_mutexes[i], NULL) != 0)
-			system_error(); 
+			system_error("wait_mutexes init"); 
 
 		if(pthread_cond_init(&wait_conditions[i], NULL) != 0)
-			system_error(); 
+			system_error("wait_conditions init"); 
 	}
 }
 
@@ -66,7 +67,7 @@ int connected_clipboard_init(char *IP, char *port_){
 	
 	//create the endpoint to connect
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		system_error(); 
+		system_error("socket() in connected_clipboard_init"); 
 
 	//connect with clipboard "server"
 	if(connect(server_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0)
@@ -97,7 +98,7 @@ int rand_port_gen(){
 int redundant_server(){
 	int fd[2];
 	if (pipe(fd) < 0)
-		system_error(); 
+		system_error("pipe creation"); 
 	
 	server_fd = fd[1];
  

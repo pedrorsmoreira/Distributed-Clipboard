@@ -83,7 +83,6 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){int te
  * @param[in]  region        Clipboard region to copy the data
  * @param[out] buf           Buffer to store the message
  * @param[in]  count         Max number of bytes to be stored in the buffer
- * 							 (if count < 0 no limit specified and alloc buffer)
  *
  * @return     returns the number of bytes stored in the buffer
  *             or returns 0 in case of error

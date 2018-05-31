@@ -52,7 +52,7 @@ void *server_init(void * family){
 
 	//check endpoint creation failure
 	if (CS->sock_fd < 0)
-		system_error();
+		system_error("socket() in server_init");
 
 	while (bind(CS->sock_fd, local_addr, addrlen) < 0){
 		if (port <= MAX_PORT){
@@ -60,12 +60,12 @@ void *server_init(void * family){
 			continue;
 		}
 		else
-			system_error();
+			system_error("bind in server_init");
 	}
 
 	//get ready to act as a server
 	if (listen (CS->sock_fd, 10) == -1)
-		system_error();
+		system_error("listen ins server_init");
 
 	if (family == (void *) INET)
 		printf("port number: %d\n", port);
@@ -101,25 +101,25 @@ void *accept_clients(void * CS_){
 	
 	//stablish connections with the client (wait for the client to connect)
 	if ( (client_fd = accept( CS->sock_fd, client_addr, &size)) == -1)
-		system_error();
+		system_error("accept() in accept_clients");
 
 	//if it is a clipboard -> add it to the list
 	if (CS->family == INET){
 		//lock the run of the list of clipboard "clients"
 		if (pthread_mutex_lock(&mutex_init) != 0)
-			system_error();
+			system_error("mutex_init lock in accept_clients");
 
 			regions_init_client(client_fd);
 			head = add_down_list(head, client_fd);
 		
 		if (pthread_mutex_unlock(&mutex_init) != 0)
-			system_error();
+			system_error("mutex_init unlock in accept_clients");
 	}
 
 	//create new thread for next client connection
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, accept_clients, CS) != 0)
-		system_error();
+		system_error("pthread_create in accept_clients");
 
 	//handle the client requests
 	connection_handle(client_fd, DOWN);
@@ -130,6 +130,11 @@ void *accept_clients(void * CS_){
 
 	//TEMPORARY PRINT FOR TESTING
 	//printf("acabou connection type (inet/unix) %d\n", CS->family);
+	pthread_t self = pthread_self();
+if (pthread_detach(self) != 0)
+		system_error("pthread_detach in accept_clients");
+
+
  return NULL;
 }
 
