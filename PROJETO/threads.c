@@ -128,12 +128,9 @@ void *accept_clients(void * CS_){
 	if (fcntl(client_fd, F_GETFD) != -1)
 		close(client_fd);
 
-	//TEMPORARY PRINT FOR TESTING
-	//printf("acabou connection type (inet/unix) %d\n", CS->family);
 	pthread_t self = pthread_self();
 if (pthread_detach(self) != 0)
 		system_error("pthread_detach in accept_clients");
-
 
  return NULL;
 }
@@ -149,9 +146,8 @@ void connection_handle(int fd, int reference){int temporary;
 	int data_size = sizeof(Smessage);
 
 	//listens until the connection is closed
-	while ( (temporary = read(fd, &data, data_size)) == data_size ){//printf("leu dados da msg com o tamanho certo (%d bytes)\n", temporary);
+	while ( (temporary = read(fd, &data, data_size)) == data_size ){
 		if ( (data.region < 0) || (data.region > REGIONS_NR - 1)){
-			printf("received wrong region from type (up/down) %d\n", reference);
 			exit(-3);
 		}
 
@@ -163,5 +159,5 @@ void connection_handle(int fd, int reference){int temporary;
 		}
 		else
 			send_region(fd, data, data_size, data.order);
-	}//printf("acabou connection type (up/down) %d\n", reference);
+	}
 }
