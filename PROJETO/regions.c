@@ -48,17 +48,18 @@ void regions_init_local(int fd){
  * @param[in]  fd    file descriptor for the new connected
  * 					 clipboard to push the regions to
  */
-void regions_init_client(int fd){
-//lock the critical region for modifications
-if (pthread_rwlock_rdlock(&regions_lock_rw[data.region]) != 0)
-	system_error("regions_lock_rw lock in regions_init_client");	
-	
-	for (int i = 0; i < REGIONS_NR; i++)
+void regions_init_client(int fd){	
+for (int i = 0; i < REGIONS_NR; i++){
+	//lock the critical region for modifications
+	if (pthread_rwlock_rdlock(&regions_lock_rw[i]) != 0)
+		system_error("regions_lock_rw lock in regions_init_client");
+
 		if (regions[i].size > 0)
 			clipboard_copy(fd , i, regions[i].message, regions[i].size);
-
-if (pthread_rwlock_rdlock(&regions_lock_rw[data.region]) != 0)
+	
+	if (pthread_rwlock_rdlock(&regions_lock_rw[i]) != 0)
 	system_error("regions_lock_rw unlock in regions_init_client");
+}
 
 //inform client that the initialization is over
 Smessage data;
