@@ -120,6 +120,8 @@ void *accept_clients(void * CS_){
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, accept_clients, CS) != 0)
 		system_error("pthread_create in accept_clients");
+	if (pthread_detach(thread_id) != 0)
+		system_error("pthread_detach in accept_clients");
 
 	//handle the client requests
 	connection_handle(client_fd, DOWN);
@@ -127,11 +129,10 @@ void *accept_clients(void * CS_){
 	//close the socket of the finnished connection
 	if (fcntl(client_fd, F_GETFD) != -1)
 		close(client_fd);
-
-	pthread_t self = pthread_self();
-if (pthread_detach(self) != 0)
+/*
+if (pthread_detach(pthread_self()) != 0)
 		system_error("pthread_detach in accept_clients");
-
+*/
  return NULL;
 }
 
@@ -147,9 +148,8 @@ void connection_handle(int fd, int reference){
 
 	//listens until the connection is closed
 	while (read(fd, &data, data_size) == data_size ){
-		if ( (data.region < 0) || (data.region > REGIONS_NR - 1)){
+		if ( (data.region < 0) || (data.region >= REGIONS_NR))
 			exit(-3);
-		}
 
 		if (data.order == COPY){
 			if (reference == UP)

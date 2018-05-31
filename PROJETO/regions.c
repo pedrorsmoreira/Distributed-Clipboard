@@ -94,8 +94,12 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 		regions[data.region].size = data.message_size;
 
 		//read the message and copy it to its region
-		if (read(fd, regions[data.region].message, data.message_size) != data.message_size)
+		if (read(fd, regions[data.region].message, data.message_size) != data.message_size){
+			if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
+				system_error("write_unlock in update");
+
 			return;
+		}
 		
 	if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
 		system_error("write_unlock in update");
@@ -110,7 +114,7 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 		//update clipboard "clients"
 		down_list *aux = *head;
 		down_list *aux_next;
-		while(aux != NULL){printf("oi\n");
+		while(aux != NULL){
 			aux_next = aux->next;
 			if (write(aux->fd, &data, data_size) != data_size)
 				*head = remove_down_list(*head, aux->fd);
@@ -147,17 +151,7 @@ void send_up_region(int fd, Smessage data, int data_size){
 	if (pthread_mutex_lock(&mutex_writeUP) != 0)
 		system_error("mutex_writeUP lock in send_up");
 	
-		//send up the message info
-		if ( write(server_fd, &data, data_size) != data_size){
-			free(buf);
-			return;
-		}
-		
-		//send up the message
-		if (write(server_fd, buf, data.message_size) != data.message_size){
-			free(buf);
-			return;
-		}
+		clipboard_copy(server_fd, data.region, buf, data.message_size);
 		
 	if (pthread_mutex_unlock(&mutex_writeUP)!=0)
 		system_error("mutex_writeUP unlock in send_up");

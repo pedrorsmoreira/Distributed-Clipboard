@@ -66,12 +66,16 @@ int main(int argc, char **argv){
 		system_error("pthread_join UN in main");
 	if (pthread_create(&thread_id_un, NULL, accept_clients, CS_un) != 0)
 		system_error("pthread create UN in main");
+	if (pthread_detach(thread_id_un) != 0)
+		system_error("pthread_detach UN in main");
 	
 	//launch the cycle to handle remote connections (clipboards)
 	if (pthread_join(thread_id_in, (void **) &CS_in) != 0 )
 		system_error("pthread_join IN in main");
 	if (pthread_create(&thread_id_in, NULL, accept_clients, CS_in) != 0)
 		system_error("pthread create IN in main");
+	if (pthread_detach(thread_id_in) != 0)
+		system_error("pthread_detach IN in main");
 	
 
 	//receive updates from the clipboard "server"
