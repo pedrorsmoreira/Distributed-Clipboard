@@ -1,3 +1,4 @@
+//protect multiple inclusions
 #ifndef THREADS
 #define THREADS
 
@@ -9,11 +10,11 @@
 /**
  * struct with info to accpet clients via socket-stream
  */
-
 typedef struct client_socket{
 	int sock_fd;
 	int family;
 }client_socket;
+
 /**
  * @brief      Initializes a socket-stream server
  *
@@ -22,6 +23,7 @@ typedef struct client_socket{
  * @return     struct with info to accpet the clients
  */
 void *server_init(void * family);
+
 /**
  * @brief      Recursive function - accepts a socket stream 
  *             connection every function call and launches 
@@ -33,6 +35,7 @@ void *server_init(void * family);
  * @return     useless
  */
 void *accept_clients(void * CS);
+
 /**
  * @brief      handles client requests until it closes the connection
  *

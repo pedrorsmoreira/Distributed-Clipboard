@@ -1,3 +1,4 @@
+//protect multiple inclusions
 #ifndef REGIONS 
 #define REGIONS 
 
@@ -20,6 +21,7 @@ typedef struct REG{
  * 					 (fd < 0  indicates single mode)
  */
 void regions_init_local(int fd);
+
 /**
  * @brief      initializes a new connected clipboard regions
  *
@@ -27,6 +29,7 @@ void regions_init_local(int fd);
  * 					 clipboard to push the regions to
  */
 void regions_init_client(int fd);
+
 /**
  * @brief      updates a clipboard region
  *
@@ -34,23 +37,26 @@ void regions_init_client(int fd);
  * 						  list of clipboard "clients"
  * @param[in]  fd         file descriptor to get the message from
  * @param[in]  data       structure with mesaage info
- * @param[in]  data_size  size of data (bytes)
+ * @param[in]  data_size  size of struct data (bytes)
  */
 void update_region( down_list **head, int fd, Smessage data, int data_size);
+
 /**
  * @brief      Sends a received messsage to the clipboard "server"
  *
  * @param[in]  fd         endpoint for the clipboard "server"
  * @param[in]  data       structure with the message info
- * @param[in]  data_size  size of data (bytes)
+ * @param[in]  data_size  size of struct data (bytes)
  */
 void send_up_region(int fd, Smessage data, int data_size); 
+
 /**
- * @brief      Sends a clipboard region message
+ * @brief      sends a clipboard region to a client
  *
- * @param[in]  fd         file descriptor to send the message
- * @param[in]  data       struct with the message info
- * @param[in]  data_size  message size in bytes
+ * @param[in]  fd         client file descriptor
+ * @param[in]  data       structure with the message info
+ * @param[in]  data_size  size of struct data (bytes)
+ * @param[in]  order      to distuinguish pastes from waits
  */
 void send_region(int fd, Smessage data, int data_size, int order); 
 

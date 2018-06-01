@@ -16,7 +16,12 @@ extern pthread_rwlock_t regions_lock_rw[];
 extern pthread_mutex_t wait_mutexes[];
 extern pthread_cond_t wait_conditions[];
 
-
+/**
+ * @brief      leaves the program correctly if it
+ * 				fails a system call function
+ *
+ * @param      indicator of where the error occured
+ */
 void system_error(char *function){
 	printf("%s:\n", function);
 	perror("ERROR: ");
@@ -56,6 +61,7 @@ void init_locks(){
  * 					  port to receive connections
  *
  * @return     endpoint to clipboard "server" connection
+ * 				returns -1 if failed to connect
  */
 int connected_clipboard_init(char *IP, char *port_){
 	//set the connection parameters
@@ -65,11 +71,9 @@ int connected_clipboard_init(char *IP, char *port_){
 	server_addr.sin_port = htons(port);
 	inet_aton(IP, &server_addr.sin_addr);
 	
-	//create the endpoint to connect
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		system_error("socket() in connected_clipboard_init"); 
 
-	//connect with clipboard "server"
 	if(connect(server_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr))<0)
 		return -1;
 
@@ -77,7 +81,7 @@ int connected_clipboard_init(char *IP, char *port_){
 }
 
 /**
- * @brief      Generates a "random" number in a valid
+ * @brief      Generates a "random" number in a certain
  *             range for a computer port connection
  *
  * @return     The "random" number
@@ -93,7 +97,7 @@ int rand_port_gen(){
  * @brief      creates the pipe for the redundant single mode 
  * 			   connection (local clipboard is its own server)
  *
- * @return     pipte reading endpoint
+ * @return     pipe reading endpoint
  */
 int redundant_server(){
 	int fd[2];
@@ -106,11 +110,11 @@ int redundant_server(){
 }
 
 /**
- * @brief      Adds a block to the linked list of connected
+ * @brief      Adds a node to the linked list of connected
  * 			   clipboard "clients" (starts the list if it was empty)
  *
  * @param      head            pointer to the head of the list
- * @param[in]  client_fd	   file descriptor for the new client
+ * @param[in]  client_fd	   file descriptor of the new client
  *
  * @return     pointer to the head of the list
  */
@@ -122,11 +126,11 @@ down_list *add_down_list(down_list *head, int client_fd){
 }
 
 /**
- * @brief      Removes from the down_list the block of a 
- * 			   clipboard "client" which disconnected
+ * @brief      Removes from the list the node of a certain 
+ * 			   clipboard "client" (indicated by client_fd)
  *
  * @param      head           pointer to the head of the list 
- * @param[in]  client_fd	  file descriptor of the disconnected client
+ * @param[in]  client_fd	  file descriptor the certain node
  *
  * @return     pointer to the head of the list
  */

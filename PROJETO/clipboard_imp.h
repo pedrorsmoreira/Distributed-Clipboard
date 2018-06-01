@@ -1,3 +1,7 @@
+//protect multiple inclusions
+#ifndef CLIP_IMP
+#define CLIP_IMP
+
 #define REGIONS_NR 10
 #define COPY 0
 #define PASTE 1
@@ -8,9 +12,10 @@
 /**
  *  struct for messages needed info
  */
-
 typedef struct Smessage{
 	int region;
 	int message_size;
 	int order;
 }Smessage;
+
+#endif

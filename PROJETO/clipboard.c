@@ -30,14 +30,10 @@ int main(int argc, char **argv){
 
 //INITIALIZE LOCAL CLIPBOARD
 	if (argc == 4 && strcmp(argv[1], "-c") == 0){
-			server_fd = connected_clipboard_init(argv[2], argv[3]);
-			if (server_fd > 0)
-				regions_init_local(server_fd);
-			else {
-				server_fd = redundant_server();
-				regions_init_local(-1);
-			}
-
+		server_fd = connected_clipboard_init(argv[2], argv[3]);
+		regions_init_local(server_fd);
+		if (server_fd < 0)
+			server_fd = redundant_server();
 	}
 	else if (argc == 1){
 		server_fd = redundant_server();
@@ -77,7 +73,6 @@ int main(int argc, char **argv){
 	if (pthread_detach(thread_id_in) != 0)
 		system_error("pthread_detach IN in main");
 	
-
 	//receive updates from the clipboard "server"
 	connection_handle(server_fd, UP);
 

@@ -11,7 +11,7 @@
 /**
  * @brief      creates the connection with the local clipboard
  *
- * @param[in]  clipboard_dir  directory where the local clipboard was launched
+ * @param[in]  clipboard_dir  directory of the local clipboard
  *
  * @return     returns the clipboard identifier to interact
  *             with the clipboard, or -1 in case of error
@@ -21,16 +21,14 @@ int clipboard_connect(char * clipboard_dir){
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 		return -1;
 
+	//set the local communication parameters
 	struct sockaddr_un server_addr;
+	server_addr.sun_family = AF_UNIX;
+	strcpy(server_addr.sun_path, SOCK_ADDRESS);
 
-	//create the endpoint to the clipboard
 	int sock_fd= socket(AF_UNIX, SOCK_STREAM, 0);	
 	if (sock_fd == -1)
 		return -1; 
-
-	//set the local communication parameters
-	server_addr.sun_family = AF_UNIX;
-	strcpy(server_addr.sun_path, SOCK_ADDRESS);
 
 	//connect the end-points to create the stream
 	if(connect(sock_fd, (const struct sockaddr *) &server_addr, sizeof(server_addr)) == 0)
@@ -44,7 +42,7 @@ int clipboard_connect(char * clipboard_dir){
  *
  * @param[in]  clipboard_id  Clipboard identifier - file descriptor
  * @param[in]  region        Clipboard region to store the data
- * @param[in] buf	         Buffer which the data is pointed by
+ * @param[in]  buf	         Buffer which the data is pointed by
  * @param[in]  count         Number of bytes of data to be copied
  *
  * @return     returns the number of bytes copied
@@ -58,7 +56,7 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 	data.message_size = count;
 	
 	// check for valid input
-	if ((region < 0) || (region > REGIONS_NR - 1) || count == 0 || buf == NULL)	
+	if ((region < 0) || (region >= REGIONS_NR) || count == 0 || buf == NULL)	
 		return 0;
 
 	//send the message specs
@@ -91,7 +89,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	data.message_size = count;
 
 	// check for valid input
-	if ((region < 0) || (region > REGIONS_NR - 1) || count == 0 || buf == NULL)	
+	if ((region < 0) || (region >= REGIONS_NR) || count == 0 || buf == NULL)	
 		return 0;
 
 	//send the region requested
@@ -107,7 +105,7 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//read the message
-	if ( read(clipboard_id, buf, data.message_size) != data.message_size)
+	if (read(clipboard_id, buf, data.message_size) != data.message_size)
 		return 0;
 
  return data.message_size;
@@ -135,18 +133,18 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	// check for valid input
-	if ((region < 0) || (region > REGIONS_NR - 1) || count == 0 || buf == 0)	
+	if ((region < 0) || (region >= REGIONS_NR) || count == 0 || buf == NULL)	
 		return 0;
 
 	//send the region requested
-	if (write(clipboard_id, &data, data_size) != data_size)
+	if (write(clipboard_id, &data, data_size) !=  data_size)
 		return 0;
 
 	//read the message specs
 	if (read(clipboard_id, &data, data_size) != data_size)
 		return 0;
 
-	//if the region is empty or message too big
+	//if message too big
 	if (data.region == -1)	
 		return 0;
 
@@ -158,7 +156,7 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 }
 
 /**
- * @brief      breaks the connection with the local clipboard
+ * @brief      closes the connection with the local clipboard
  *
  * @param[in]  clipboard_id  clipboard identifier - file descriptor
  */

@@ -50,7 +50,6 @@ void *server_init(void * family){
 		CS->sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 	}
 
-	//check endpoint creation failure
 	if (CS->sock_fd < 0)
 		system_error("socket() in server_init");
 
@@ -99,11 +98,10 @@ void *accept_clients(void * CS_){
 		client_addr = (struct sockaddr *) &client_addr_in;
 	}
 	
-	//stablish connections with the client (wait for the client to connect)
 	if ( (client_fd = accept( CS->sock_fd, client_addr, &size)) == -1)
 		system_error("accept() in accept_clients");
 
-	//if it is a clipboard -> add it to the list
+	//if it is a clipboard -> add it to the list and initialize it
 	if (CS->family == INET){
 		//lock the run of the list of clipboard "clients"
 		if (pthread_mutex_lock(&mutex_init) != 0)
@@ -126,13 +124,9 @@ void *accept_clients(void * CS_){
 	//handle the client requests
 	connection_handle(client_fd, DOWN);
 
-	//close the socket of the finnished connection
 	if (fcntl(client_fd, F_GETFD) != -1)
 		close(client_fd);
-/*
-if (pthread_detach(pthread_self()) != 0)
-		system_error("pthread_detach in accept_clients");
-*/
+
  return NULL;
 }
 
@@ -146,7 +140,7 @@ void connection_handle(int fd, int reference){
 	Smessage data;
 	int data_size = sizeof(Smessage);
 
-	//listens until the connection is closed
+	//read the action and perform it (if valid)
 	while (read(fd, &data, data_size) == data_size ){
 		if ( (data.region < 0) || (data.region >= REGIONS_NR))
 			exit(-3);
@@ -157,7 +151,7 @@ void connection_handle(int fd, int reference){
 			else if (reference == DOWN)
 				send_up_region(fd, data, data_size);
 		}
-		else
+		else //PASTE OR WAIT
 			send_region(fd, data, data_size, data.order);
 	}
 }
