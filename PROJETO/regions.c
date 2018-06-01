@@ -60,7 +60,7 @@ for (int i = 0; i < REGIONS_NR; i++){
 			clipboard_copy(fd , i, regions[i].message, regions[i].size);
 	
 	if (pthread_rwlock_unlock(&regions_lock_rw[i]) != 0)
-	system_error("regions_lock_rw unlock in regions_init_client");
+		system_error("regions_lock_rw unlock in regions_init_client");
 }
 
 //inform client that the initialization is over

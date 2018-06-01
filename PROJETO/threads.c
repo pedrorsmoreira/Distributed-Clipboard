@@ -143,7 +143,7 @@ void connection_handle(int fd, int reference){
 	//read the action and perform it (if valid)
 	while (read(fd, &data, data_size) == data_size ){
 		if ( (data.region < 0) || (data.region >= REGIONS_NR))
-			exit(-3);
+			break;
 
 		if (data.order == COPY){
 			if (reference == UP)

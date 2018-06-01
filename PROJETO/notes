@@ -1,3 +1,0 @@
-(mutex_init) por no relatorio q se assim nao fosse, se hoivesse uma modificacao a meio da atualizacao esse novo clipboard ja nao seria atualizado.
-
-exit(0) -> Ctrl^C; exit(-1) -> system call failure; exit(-2) -> invalid input arguments; exit(3) -> regiao errada no send region (PROTOCOLO VIOLADO)
