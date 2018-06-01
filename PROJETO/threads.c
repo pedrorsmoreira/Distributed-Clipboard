@@ -145,13 +145,16 @@ void connection_handle(int fd, int reference){
 		if ( (data.region < 0) || (data.region >= REGIONS_NR))
 			break;
 
-		if (data.order == COPY){
+		else if (data.order == COPY){
 			if (reference == UP)
 				update_region(&head, fd, data, data_size);
 			else if (reference == DOWN)
 				send_up_region(fd, data, data_size);
 		}
-		else //PASTE OR WAIT
+		else if (data.order == WAIT || data.order == PASTE){
 			send_region(fd, data, data_size, data.order);
+		}
+		else
+			break; 
 	}
 }
