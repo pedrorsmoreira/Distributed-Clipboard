@@ -1,3 +1,14 @@
+/******************************************************************************
+ *
+ * File Name: library.c
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		API functions (connect, copy, paste, wait and close)
+ *****************************************************************************/
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -65,7 +76,10 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 
 	//send the message
 	if (write(clipboard_id, buf, data.message_size) != data.message_size)
+	{
+		printf("falhehi copy\n");
 		return 0;
+	}
 
  return data.message_size;
 }

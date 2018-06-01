@@ -1,10 +1,19 @@
+/******************************************************************************
+ *
+ * File Name: clipboard.h
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		main program starts all the routines 
+ *		and launches the local clipboard functionalities 
+ *****************************************************************************/
+
 //protect multiple inclusions
 #ifndef CLIPBOARD
 #define CLIPBOARD
 
 #include "clipboard_imp.h"
-
-#include <sys/types.h>
 
 /**
  * @brief      creates the connection with the local clipboard

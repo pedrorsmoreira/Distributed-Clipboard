@@ -1,3 +1,16 @@
+/******************************************************************************
+ *
+ * File Name: threads.c
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		initializes the socket-stream servers, accepts the
+ *      connections recursively and handles them until the 
+ *      connection closes.
+ *****************************************************************************/
+
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>

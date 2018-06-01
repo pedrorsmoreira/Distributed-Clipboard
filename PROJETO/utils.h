@@ -1,3 +1,13 @@
+/******************************************************************************
+ *
+ * File Name: utils.h
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		auxiliary functions
+ *****************************************************************************/
+
 //protect multiple inclusions
 #ifndef UTILS
 #define UTILS

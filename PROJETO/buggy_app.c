@@ -1,3 +1,13 @@
+/******************************************************************************
+ *
+ * File Name: buggy_app.c
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		app that lets the user define all parameters 
+ *****************************************************************************/
+
 #include "clipboard.h"
 #include <sys/types.h>
 #include <stdlib.h>

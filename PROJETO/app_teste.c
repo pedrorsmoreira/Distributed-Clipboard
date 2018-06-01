@@ -1,3 +1,13 @@
+/******************************************************************************
+ *
+ * File Name: app_teste.c
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		default app with copy, paste and wait
+ *****************************************************************************/
+
 #include "clipboard.h"
 #include <sys/types.h>
 #include <stdlib.h>

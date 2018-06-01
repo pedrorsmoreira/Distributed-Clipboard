@@ -1,3 +1,15 @@
+/******************************************************************************
+ *
+ * File Name: regions.h
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		initializes the clipboard regions and its 
+ *		also responsible for sending up the message 
+ *		to the clipboard master-server and then to 
+ *		the clients (updating them).
+ *****************************************************************************/
 //protect multiple inclusions
 #ifndef REGIONS 
 #define REGIONS 

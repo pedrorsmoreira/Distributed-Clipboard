@@ -1,3 +1,14 @@
+/******************************************************************************
+ *
+ * File Name: parallel_apps.c
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		app that connects (2^FORK_CYCLE * THREADS_NR) to the clipboard
+ *****************************************************************************/
+
+
 #include "clipboard.h"
 #include <sys/types.h>
 #include <stdlib.h>

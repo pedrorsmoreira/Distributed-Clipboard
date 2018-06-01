@@ -1,3 +1,15 @@
+/******************************************************************************
+ *
+ * File Name: threads.h
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		initializes the socket-stream servers, accepts the
+ *      connections recursively and handles them until the 
+ *      connection closes.
+ *****************************************************************************/
+ 
 //protect multiple inclusions
 #ifndef THREADS
 #define THREADS

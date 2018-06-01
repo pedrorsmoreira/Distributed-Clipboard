@@ -1,3 +1,13 @@
+/******************************************************************************
+ *
+ * File Name: utils.c
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		auxiliary functions
+ *****************************************************************************/
+
 #include "utils.h"
 
 #include <stdlib.h>
@@ -105,7 +115,8 @@ int redundant_server(){
 		system_error("pipe creation"); 
 	
 	server_fd = fd[1];
- 
+
+ printf("clipboard running in single mode\n");
  return fd[0];
 }
 

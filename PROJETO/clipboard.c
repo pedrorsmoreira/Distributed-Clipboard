@@ -1,3 +1,14 @@
+/******************************************************************************
+ *
+ * File Name: clipboard.c
+ *	      (c) 2018 PSis
+ * Authors: Pedro Moreira e Inês Gaspar
+ *
+ * DESCRIPTION
+ *		main program starts all the routines 
+ *		and launches the local clipboard functionalities 
+ *****************************************************************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
