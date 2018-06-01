@@ -24,57 +24,67 @@ int read_region(){
 }
 
 int main(){
-		//variables to hold the info from stdin
-		char aux[50], message[MESSAGE_SIZE];
-		//get the FIFOs file descriptor
-		int region, nbytes;
+//variables to hold the info from stdin
+char aux[50], message[MESSAGE_SIZE];
+//get the FIFOs file descriptor
+int region, nbytes;
+int fd = clipboard_connect("./");
+if(fd== -1){
+	printf("Clipboard is off\n");
+	exit(-1);
+}
 
-		int fd = clipboard_connect("./");
-		if(fd== -1){
-			printf("Clipboard is off\n");
-			exit(-1);
-		}
-		while(1){
-			//read the action from stdin and perform it
-			while (1){
-			char order;
-				printf("(Enter [Q] to quit) \nIntroduce the action, copy [C] or paste [P]:");
-				if (fgets(aux, sizeof(aux), stdin) == NULL){
+	while(1){
+		//read the action from stdin and perform it
+		while (1){
+		char order;
+			printf("(Enter [Q] to quit) \nIntroduce the action, copy [C], paste [P] or wait [W]:");
+			if (fgets(aux, sizeof(aux), stdin) == NULL){
+				perror("fgets: ");
+				exit(-1);
+			}
+			sscanf(aux, "%c", &order);
+			//perform
+			if ((order == 'q') || (order == 'Q')){
+				clipboard_close(fd);
+				return 0;
+			}
+			else if ((order == 'c') || (order == 'C')){
+				//read the region of the action from stdin
+				region = read_region();
+				
+				printf("Write the message to be copied:");	
+				if (fgets(message, MESSAGE_SIZE, stdin) == NULL){
 					perror("fgets: ");
 					exit(-1);
 				}
-				sscanf(aux, "%c", &order);
-				//perform
-				if ((order == 'q') || (order == 'Q')){
-					clipboard_close(fd);
-					return 0;
-				}
-				if ((order == 'c') || (order == 'C')){
-					//read the region of the action from stdin
-					region = read_region();
-					
-					printf("Write the message to be copied:");	
-					if (fgets(message, MESSAGE_SIZE, stdin) == NULL){
-						perror("fgets: ");
-						exit(-1);
-					}
-					nbytes = clipboard_copy(fd, region, message, strlen(message)+1);
-					if (nbytes == 0)	printf("copy failed\n---\n");
-					else	printf("%d bytes copied\n---\n", nbytes);
-					break;
-				}
-				if ((order == 'P') || (order == 'p')){
-					//read the region of the action from stdin
-					region = read_region();
-					
-					nbytes = clipboard_paste(fd, region, message, MESSAGE_SIZE);
-					if (nbytes == 0)	printf("paste failed\n---\n");
-					else	printf("Received %s\n (%d bytes pasted)\n---\n", message, nbytes);
-					
-					break;
-				}
-				printf("Option not available\n---\n");
+				nbytes = clipboard_copy(fd, region, message, strlen(message)+1);
+				if (nbytes == 0)	printf("copy failed\n---\n");
+				else	printf("%d bytes copied\n---\n", nbytes);
+				break;
 			}
+			else if ((order == 'P') || (order == 'p')){
+				//read the region of the action from stdin
+				region = read_region();
+				
+				nbytes = clipboard_paste(fd, region, message, MESSAGE_SIZE);
+				if (nbytes == 0)	printf("paste failed\n---\n");
+				else	printf("Received %s\n (%d bytes pasted)\n---\n", message, nbytes);
+				
+				break;
+			}
+			else if ((order == 'W') || (order == 'w')){
+				//read the region of the action from stdin
+				region = read_region();
+				
+				nbytes = clipboard_wait(fd, region, message, MESSAGE_SIZE);
+				if (nbytes == 0)	printf("paste (wait) failed\n---\n");
+				else	printf("Received %s\n (%d bytes pasted (wait))\n---\n", message, nbytes);
+				
+				break;
+			}
+			printf("Option not available\n---\n");
 		}
-	exit(-5);
 	}
+exit(-5);
+}
