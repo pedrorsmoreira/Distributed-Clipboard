@@ -75,11 +75,14 @@ int clipboard_copy(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//send the message
+	#ifndef MESSAGE_FLUX_CYCLE
 	if (write(clipboard_id, buf, data.message_size) != data.message_size)
-	{
-		printf("falhehi copy\n");
 		return 0;
-	}
+	#endif
+	#ifdef MESSAGE_FLUX_CYCLE
+	if (writeall(clipboard_id, buf, data.message_size) != data.message_size)
+		return 0;
+	#endif
 
  return data.message_size;
 }
@@ -114,13 +117,19 @@ int clipboard_paste(int clipboard_id, int region, void *buf, size_t count){
 	if (read(clipboard_id, &data, data_size) != data_size)
 		return 0;
 
-	//if the region is empty or message too big
+	//if message too big
 	if (data.region == -1)	
 		return 0;
 
 	//read the message
+	#ifndef MESSAGE_FLUX_CYCLE
 	if (read(clipboard_id, buf, data.message_size) != data.message_size)
 		return 0;
+	#endif
+	#ifdef MESSAGE_FLUX_CYCLE
+	if (readall(clipboard_id, buf, data.message_size) != data.message_size)
+		return 0;
+	#endif
 
  return data.message_size;
 }
@@ -142,9 +151,7 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 	Smessage data;
 	data.region = region;
 	data.order = WAIT;
-
-	if(buf == NULL || count == 0)
-		return 0;
+	data.message_size = count;
 
 	// check for valid input
 	if ((region < 0) || (region >= REGIONS_NR) || count == 0 || buf == NULL)	
@@ -163,9 +170,15 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 		return 0;
 
 	//read the message
+	#ifndef MESSAGE_FLUX_CYCLE
 	if (read(clipboard_id, buf, data.message_size) != data.message_size)
 		return 0;
-	
+	#endif
+	#ifdef MESSAGE_FLUX_CYCLE
+	if (readall(clipboard_id, buf, data.message_size) != data.message_size)
+		return 0;
+	#endif
+
  return data.message_size;
 }
 
@@ -177,3 +190,48 @@ int clipboard_wait(int clipboard_id, int region, void *buf, size_t count){
 void clipboard_close(int clipboard_id){
 	close(clipboard_id);
 }
+
+
+/**
+ * 	To send buffers with a big number of bytes,
+ * 	only onde write/read might not be enough
+ */
+
+#ifdef MESSAGE_FLUX_CYCLE
+
+size_t writeall(int fd, void *buf, size_t len){
+    size_t total = 0;        // how many bytes we've sent
+    size_t bytesleft = len; // how many we have left to send
+    size_t n;
+
+    while(total < len) {
+        n = write(fd, buf+total, bytesleft);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+
+    len = total; // return number actually sent here
+
+    return n==-1?-1:len; // return -1 on failure, bytes written on success
+} 
+
+
+size_t readall(int fd, void *buf, size_t len){
+    size_t total = 0;        // how many bytes we've sent
+    size_t bytesleft = len; // how many we have left to send
+    size_t n;
+
+    while(total < len) {
+        n = read(fd, buf+total, bytesleft);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+
+    len = total; // return number actually sent here
+
+    return n==-1?-1:len; // return -1 on failure, bytes read on success
+}
+
+#endif

@@ -20,6 +20,21 @@
 
 #include <sys/types.h>
 
+/**
+ * COMMENT THIS LINE TO WRITE/READ MESSAGES WITHOUT 
+ * A CYCLE TO ASSURE THE WHOLE MESSAGE IS PASSED
+ */
+#define MESSAGE_FLUX_CYCLE
+
+/**
+ * 	To send buffers with a big number of bytes,
+ * 	only onde write/read might not be enough
+ */
+#ifdef MESSAGE_FLUX_CYCLE
+size_t writeall(int fd, void *buf, size_t len);
+size_t readall(int fd, void *buf, size_t len);
+#endif
+
 
 /**
  *  struct for messages needed info

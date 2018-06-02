@@ -97,10 +97,18 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 	void *buf = (void *) malloc (data.message_size);
 	if(buf == NULL)
 		system_error("malloc in update");
+	#ifndef MESSAGE_FLUX_CYCLE
 	if (read(fd, buf, data.message_size) != data.message_size){
 		free(buf);
 		return;
 	}
+	#endif
+	#ifdef MESSAGE_FLUX_CYCLE
+	if (readall(fd, buf, data.message_size) != data.message_size){
+		free(buf);
+		return;
+	}
+	#endif
 
 	//lock the critical region access
 	if (pthread_rwlock_wrlock(&regions_lock_rw[data.region]) != 0)
@@ -129,9 +137,14 @@ void update_region( down_list **head, int fd, Smessage data, int data_size){
 			aux_next = aux->next;
 			if (write(aux->fd, &data, data_size) != data_size)
 				*head = remove_down_list(*head, aux->fd);
+			#ifndef MESSAGE_FLUX_CYCLE
 			else if ( write(aux->fd, regions[data.region].message, data.message_size) != data.message_size)
 				*head = remove_down_list(*head, aux->fd);
-
+			#endif
+		 	#ifdef MESSAGE_FLUX_CYCLE
+			else if ( writeall(aux->fd, regions[data.region].message, data.message_size) != data.message_size)
+				*head = remove_down_list(*head, aux->fd);
+			#endif
 		 	aux = aux_next;
 		}
 
@@ -152,10 +165,18 @@ void send_up_region(int fd, Smessage data, int data_size){
 		return;
 
 	//read the message
+	#ifndef MESSAGE_FLUX_CYCLE
 	if ( read(fd, buf, data.message_size) != data.message_size){
 		free(buf);
 		return;
 	}
+	#endif
+	#ifdef MESSAGE_FLUX_CYCLE
+	if ( readall(fd, buf, data.message_size) != data.message_size){
+		free(buf);
+		return;
+	}
+	#endif
 
 	//lock the writes to clipboard "server"
 	if (pthread_mutex_lock(&mutex_writeUP) != 0)
@@ -218,12 +239,20 @@ void send_region(int fd, Smessage data, int data_size, int order){
 			return;
 
 		//send the message requested
+		#ifndef MESSAGE_FLUX_CYCLE
 		if (write(fd, regions[data.region].message, data.message_size) != data.message_size){
 			if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
 				system_error("regions_lock_rw (no message) unlock in send");
-
 			return;
 		}
+		#endif
+		#ifdef MESSAGE_FLUX_CYCLE
+		if (writeall(fd, regions[data.region].message, data.message_size) != data.message_size){
+			if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
+				system_error("regions_lock_rw (no message) unlock in send");
+			return;
+		}
+		#endif
 
 	//unlock the critical region
 	if (pthread_rwlock_unlock(&regions_lock_rw[data.region]) != 0)
