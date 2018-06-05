@@ -18,36 +18,42 @@
 #include <string.h>
 #include <pthread.h>
 
+//#define WRONG_FD
+
+
 #define FORK_CYCLE 10
 #define THREADS_NR 10
 
-void *ola(void * xx){
-
-int *a =(int *) malloc(sizeof(int));
-if(a == NULL)
-	printf("falhou malloc\n");
+void *ola(void * fd_){
 
 char palavra[10]; 
-
+#ifndef WRONG_FD
 int fd = clipboard_connect("./");
+#endif
+
+#ifdef WRONG_FD
+int fd = fd_;
+#endif
 		if(fd== -1){
-			//printf("Clipboard is off\n");
-			return (void *) a;
+			return NULL;
 		}
 
 	for (int i=0; i<10; i++)
 	{
-		clipboard_copy(fd , i, palavra, 10);
-		clipboard_paste(fd, i, palavra, 10); 
+		if ( clipboard_copy(fd , i, palavra, 10) != 10)
+			printf("falhou copy\n");
+		if ( clipboard_paste(fd , i, palavra, 10) != 10)
+			printf("falhou paste\n");
 	}
 	close(fd);
 
-	return (void *) a;
+	return (void *) NULL;
 	
 }
 
 int main(){
 int i;
+int fd;
 int *a;
 a = (int *) malloc(sizeof(int)); 
 
@@ -55,11 +61,15 @@ for (i=0; i<FORK_CYCLE; i++){
 	fork();
 }
 
+#ifdef WRONG_FD
+fd = clipboard_connect("./");
+#endif
+
 pthread_t thread_id[THREADS_NR];
 
 for (i=0; i<THREADS_NR; i++)
 {
-	 if (pthread_create(&(thread_id[i]), NULL, ola, (void *) &i) != 0)
+	 if (pthread_create(&(thread_id[i]), NULL, ola, (void *) fd) != 0)
 	 	printf("falhou pthread_create\n");
 }
 
