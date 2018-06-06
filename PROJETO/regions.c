@@ -52,7 +52,7 @@ void regions_init_local(int fd){
 
 			if (data.message_size > 0)
 				update_region(&aux, fd, data, data_size);
-		}while(data.region > 0);
+		}while(data.region >= 0);
 	}
 }
 
