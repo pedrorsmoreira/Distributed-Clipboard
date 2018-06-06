@@ -2,8 +2,11 @@ CFLAGS= -O2 -Ofast -Wall -std=gnu11
 
 default: clipboard
 
-all: clipboard app buggy_app parallel_apps files_app
-apps: app buggy_app parallel_apps files_app
+all: clipboard app buggy_app parallel_apps files_app region_copy_loop
+apps: app buggy_app parallel_apps files_app region_copy_loop
+
+region_copy_loop: region_copy_loop.c library.c
+	gcc region_copy_loop.c library.c -o region_copy_loop $(CFLAGS)
 
 files_app: files_app.c library.c
 	gcc files_app.c library.c -o files_app $(CFLAGS)
@@ -21,4 +24,4 @@ clipboard: clipboard.c library.c threads.c regions.c utils.c
 	gcc clipboard.c library.c threads.c regions.c utils.c -pthread -o clipboard $(CFLAGS)
 
 clean:
-	rm -f *.o app clipboard buggy_app parallel_apps files_app
+	rm -f *.o app clipboard buggy_app parallel_apps files_app region_copy_loop
